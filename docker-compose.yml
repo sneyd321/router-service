@@ -1,0 +1,9 @@
+version: '3.5'
+
+services: 
+  zookeeper:
+      image: sneyd321/zookeeper
+      restart: on-failure
+      ports:
+        - 2181:2181
+

@@ -1,19 +1,24 @@
-from kazoo.client import KazooClient, KazooState
+import strawberry
+from fastapi import FastAPI
+from strawberry.fastapi import GraphQLRouter
+from query import Query
+from mutation import Mutation
+from resolver import zk
+import uvicorn
 
-zk = KazooClient(hosts='127.0.0.1:2181')
-zk.start()
+schema = strawberry.Schema(query=Query, mutation=Mutation)
+graphql_app = GraphQLRouter(schema)
+app = FastAPI()
+app.include_router(graphql_app, prefix="/graphql")
 
-def my_listener(state):
-    if state == KazooState.LOST:
-        print("LOST")
-    elif state == KazooState.SUSPENDED:
-        print("Suspended")
-    else:
-        print("Connected")
+@app.on_event("startup")
+async def startup_event():
+    zk.initialize()
+    zk.create_node()
 
-zk.add_listener(my_listener)
+@app.get("/")
+def get_children():
+    return zk.get_children()
 
-# Create a node with data
-#zk.create("/TEST", b"a value")
-print(zk.get("TEST"))
-print(zk.connected)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8081)
