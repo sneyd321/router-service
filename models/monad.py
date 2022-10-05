@@ -19,3 +19,14 @@ class MaybeMonad:
         except ConnectionError:
             return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
  
+    async def bind_no_params(self, function):
+        try:
+            self.result = await function()
+            return MaybeMonad(data=self.data, result=self.result)
+        except aiohttp.client_exceptions.ClientConnectorError:
+            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
+        except aiohttp.ClientResponseError:
+            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Recieved invalid downstream response"})
+        except ConnectionError:
+            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
+ 

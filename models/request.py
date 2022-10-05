@@ -14,8 +14,9 @@ class Request:
             async with session.get(self.hostname + self.resourcePath) as response:
                 payload = await response.json()
                 if "status_code" in payload:
+                    print(payload)
                     raise ConnectionError
-                return await payload
+                return payload
 
 
     async def post(self, payload):
@@ -23,6 +24,7 @@ class Request:
             async with session.post(self.hostname + self.resourcePath, json=payload) as response:
                 payload = await response.json()
                 if "status_code" in payload:
+                    print(payload)
                     raise ConnectionError
                 return payload
 
@@ -30,7 +32,9 @@ class Request:
         async with aiohttp.ClientSession() as session:
             async with session.put(self.hostname + self.resourcePath, json=payload) as response:
                 payload = await response.json()
+
                 if "status_code" in payload:
+                    print(payload)
                     raise ConnectionError
                 return payload
 

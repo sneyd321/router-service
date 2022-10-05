@@ -5,22 +5,46 @@ import strawberry
 class DescriptionInput:
     descriptionText: str
 
+    def to_json(self):
+        return {
+            "descriptionText": self.descriptionText
+        }
+
 @strawberry.input
 class UrgencyInput:
     name: str
 
+    def to_json(self):
+        return {
+            "name": self.name
+        }
+
+@strawberry.input
+class MaintenanceTicketSenderInput:
+    firstName: str
+    lastName: str
+    email: str
+
+    def to_json(self):
+        return {
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            "email": self.email
+        } 
+
 @strawberry.input
 class MaintenanceTicketInput:
-    registration_token: str
-    name: str
-    description: 'DescriptionInput'
-    urgency: 'UrgencyInput'
+    description: DescriptionInput
+    urgency: UrgencyInput
+    sender: MaintenanceTicketSenderInput
 
-  
-@strawberry.input
-class ImageURLFirebaseInput:
-    imageURL: str
-    firebaseId: str
+    def to_json(self):
+        return {
+            "description": self.description.to_json(),
+            "urgency": self.urgency.to_json(),
+            "sender": self.sender.to_json()
+        }
+
 
 
 @strawberry.input
@@ -234,7 +258,7 @@ class UtilityInput:
         }
 
 @strawberry.input
-class RentDiscoutInput:
+class RentDiscountInput:
     name: str
     amount: str
     details: List[DetailInput]
@@ -291,7 +315,7 @@ class LeaseInput:
     services: List[ServiceInput]
     utilities: List[UtilityInput]
     rentDeposits: List[RentDepositInput]
-    rentDiscounts: List[RentDiscoutInput]
+    rentDiscounts: List[RentDiscountInput]
     additionalTerms: List[AdditionalTermInput]
     tenantNames: List[TenantNameInput]
 
@@ -312,7 +336,73 @@ class LeaseInput:
 
   
 
+
+
+
 @strawberry.input
-class HouseInput:
-    firebaseId: str
-    lease: LeaseInput
+class TenantInput:
+    firstName: str
+    lastName: str
+    email: str
+    tenantState: str
+
+
+    def to_json(self):
+        return {
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            "email": self.email,
+            "tenantState": self.tenantState,
+        }
+
+
+@strawberry.input
+class CreateTenantAccountInput:
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+    tenantState: str
+
+
+    def to_json(self):
+        return {
+            'firstName': self.firstName, 
+            'lastName': self.lastName, 
+            'email': self.email, 
+            'password': self.password, 
+            'tenantState': self.tenantState
+        }
+
+@strawberry.input
+class LoginTenantInput:
+    email: str
+    password: str
+    houseKey: str
+    deviceId: str
+
+@strawberry.input
+class LandlordInput:
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+
+    def to_json(self):
+        return {
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            'email': self.email, 
+            'password': self.password, 
+        }
+
+
+@strawberry.input
+class LoginLandlordInput:
+    email: str
+    password: str
+    deviceId: str
+
+
+
+
