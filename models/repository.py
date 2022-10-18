@@ -1,65 +1,29 @@
 from models.request import Request
-from models.monad import MaybeMonad
-from models.cloud_run import CloudRun
+from models.monad import RequestMaybeMonad
 import aiohttp
 
-class HouseRepsository:
+class Repository:
 
-    def __init__(self):
-        self.cloudRun = CloudRun()
-        self.cloudRun.initialize()
+    def __init__(self, request):
+        self.request = request
 
-    async def insert_house(self, landlordId): 
-        hostname = self.cloudRun.get_house_hostname()
-        if not hostname:
-            return MaybeMonad(errors={"status_code": 503, "Error": "Failed to connect to house service"})
-
-        request = Request(hostname, f"/House")
-        monad = MaybeMonad({
-            "homeownerId": landlordId
-        })
-        monad = await monad.bind(request.post)
-        return monad
-
+    async def insert(self, **kwargs): 
+        async with self.request.get_session() as session:
+            return await RequestMaybeMonad(kwargs) \
+                .bind_data(self.request.post)
+            return monad
+            
+    async def get(self):
+        async with self.request.get_session() as session:
+            return await RequestMaybeMonad() \
+                .bind_data(self.request.get)
+        
     
-    async def get_house(self, landlordId):
-        hostname = self.cloudRun.get_house_hostname()
-        if not hostname:
-            return MaybeMonad(errors={"status_code": 503, "Error": "Failed to connect to house service"})
-
-        try:
-            request = Request(hostname, f"/Landlord/{landlordId}/House")
-            houseData = await request.get()
-            return MaybeMonad(data=houseData)
-        except aiohttp.client_exceptions.ClientConnectorError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
-        except aiohttp.ClientResponseError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Recieved invalid downstream response"})
-        except ConnectionError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
-
-    async def get_house_by_house_key(self, houseKey):
-        hostname = self.cloudRun.get_house_hostname()
-        if not hostname:
-            return MaybeMonad(errors={"status_code": 503, "Error": "Failed to connect to house service"})
-
-        try:
-            request = Request(hostname, f"/House/{houseKey}")
-            houseData = await request.get()
-            return MaybeMonad(data=houseData)
-        except aiohttp.client_exceptions.ClientConnectorError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
-        except aiohttp.ClientResponseError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Recieved invalid downstream response"})
-        except ConnectionError:
-            return MaybeMonad(result=None, errors={"status_code": 502, "Error": "Failed to connect downstream service"})
-
 
 class LeaseRepository:
 
     def __init__(self):
         self.cloudRun = CloudRun()
-        self.cloudRun.initialize()
 
     async def insert_lease(self, houseId, leaseInput):
         #Get lease service
@@ -104,7 +68,6 @@ class SchedulerRepository:
 
     def __init__(self):
         self.cloudRun = CloudRun()
-        self.cloudRun.initialize()
 
     async def schedule_lease(self, leaseData):
         #Get lease service
@@ -183,7 +146,6 @@ class MaintenanceTicketRepository:
 
     def __init__(self):
         self.cloudRun = CloudRun()
-        self.cloudRun.initialize()
 
     async def create_maintenance_ticket(self, houseId, maintenanceTicketData):
         hostname = self.cloudRun.get_maintenance_ticket_hostname()
@@ -217,7 +179,6 @@ class TenantRepository:
 
     def __init__(self):
         self.cloudRun = CloudRun()
-        self.cloudRun.initialize() 
 
     async def create_tenant(self, tenantData, houseId):
         hostname = self.cloudRun.get_tenant_hostname()
@@ -263,7 +224,6 @@ class TenantRepository:
 class LandlordRepository:
     def __init__(self):
             self.cloudRun = CloudRun()
-            self.cloudRun.initialize() 
 
     async def create_landlord(self, landlordData):
         hostname = self.cloudRun.get_landlord_hostname()

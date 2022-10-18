@@ -3,105 +3,257 @@ from typing import Optional, Union, List, AsyncGenerator
 from models.graphql_inputs import *
 from models.graphql_types import *
 from models.request import Request
-from models.monad import MaybeMonad
 import json, itertools, asyncio
 from strawberry.types import Info
 from strawberry.file_uploads import Upload
 import base64
+from models.cloud_run import CloudRun
+from models.monad import RequestMaybeMonad
+from models.repository import Repository, LeaseRepository, SchedulerRepository, MaintenanceTicketRepository, TenantRepository, LandlordRepository
 
-from models.repository import HouseRepsository, LeaseRepository, SchedulerRepository, MaintenanceTicketRepository, TenantRepository, LandlordRepository
 
-houseRepository = HouseRepsository()
+cloudRun = CloudRun()
+cloudRun.discover_dev()
+
+
 leaseRepository = LeaseRepository()
 schedulerRepository = SchedulerRepository()
-maintenanceTicketRepository = MaintenanceTicketRepository()
 tenantRepository = TenantRepository()
 landlordRepository = LandlordRepository()
 
-async def maintenance_tickets() -> List[MaintenanceTicket]:
-    request = Request("http://localhost:8080")
-    monad = await MaybeMonad(*("/House/1/MaintenanceTicket")).bind(request.post)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    jsonArray = monad.result
-    return [MaintenanceTicket(**json) for json in jsonArray]
 
+async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
+    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/House/{houseId}/MaintenanceTicket")
+    maintenanceTicketRepository = Repository(request)
+    monad = await maintenanceTicketRepository.get()
+    if monad.has_errors():
+        raise Exception(monad.error_status["reason"])
+    return MaintenanceTicket(**monad.get_param_at(0))
 
-async def get_maintenance_ticket_by_id(houseKey: str, maintenanceTicketId: int) -> MaintenanceTicket:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    houseResponse = monad.data
-    houseId = str(houseResponse["id"])
-
-    monad = await maintenanceTicketRepository.get_maintenance_ticket_by_id(maintenanceTicketId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    print(monad.data)
-    return MaintenanceTicket(**monad.data)
-
-
-async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput, picture: Upload) -> MaintenanceTicket:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
+async def get_maintenance_tickets_by_house_key(houseKey: str) -> List[MaintenanceTicket]:
+    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
+    houseRepository = Repository(request)
+    monad = await houseRepository.get()
+    if monad.has_errors():
         raise Exception(monad.errors["reason"])
-    print(monad.data)
-    houseId = monad.data["id"]
-    firebaseId = monad.data["firebaseId"]
-    monad = await maintenanceTicketRepository.create_maintenance_ticket(houseId, maintenanceTicket.to_json())
-    if monad.errors:
+    house = NewHouse(**monad.get_param_at(0))
+    
+    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/House/{house.id}/MaintenanceTicket")
+    maintenanceTicketRepository = Repository(request)
+    monad = await maintenanceTicketRepository.get()
+    if monad.has_errors():
+        raise Exception(monad.error_status["reason"])
+    return MaintenanceTicket(**monad.get_param_at(0))
+
+async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput) -> MaintenanceTicket:
+    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
+    houseRepository = Repository(request)
+    monad = await houseRepository.get()
+    if monad.has_errors():
         raise Exception(monad.errors["reason"])
-    print(monad.result)
-    maintenanceTicket = MaintenanceTicket(**monad.result)
- 
+    house = NewHouse(**monad.get_param_at(0))
+
+    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/MaintenanceTicket")
+    maintenanceTicketRepository = Repository(request)
+    maintenanceTicket.houseId = house.id
+    monad = await maintenanceTicketRepository.insert(**maintenanceTicket.to_json())
+    if monad.has_errors():
+        raise Exception(monad.error_status["reason"])
+    return MaintenanceTicket(**monad.get_param_at(0))
+
     monad = await schedulerRepository.schedule_maintenance_ticket_upload(houseKey, firebaseId, maintenanceTicket, picture)
     if monad.errors:
         raise Exception(monad.errors["reason"])
-
     print(monad.result)
 
     return maintenanceTicket
 
 
 
-async def add_house(homeownerId: int, leaseInput: LeaseInput) -> House:
-    monad = await houseRepository.insert_house(homeownerId)
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    house = House(**monad.result, lease=houseInput.lease)
+async def add_house(landlordId: int) -> NewHouse:
+    request = Request(cloudRun.get_house_hostname(), f"/House")
+    repository = Repository(request)
+    monad = await repository.insert(landlordId=landlordId)
+    if monad.has_errors():
+        raise Exception(monad.error_status["reason"])
+    return NewHouse(**monad.get_param_at(0))
 
-    monad = await leaseRepository.insert_lease(house.id, leaseInput.to_json())
+    
+
+
+async def get_houses(landlordId: int) -> List[NewHouse]:
+    request = Request(hostname, f"/Landlord/{landlordId}/House")
+    repository = Repository(request)
+    monad = await houseRepository.get()
     if monad.errors:
         raise Exception(monad.errors["reason"])
-    return house
+    return NewHouse(**monad.data)
+
+async def get_house_by_house_key(houseKey: str) -> NewHouse:
+    request = Request(hostname, f"/House/{houseKey}")
+    repository = Repository(request)
+    monad = await repository.get()
+    if monad.errors:
+        raise Exception(monad.errors["reason"])
+    return NewHouse(**monad.get_param_at(0))
+
+
+
+
+async def schedule_lease(houseId: int, firebaseId: str) -> LeaseSchedule:
+    monad = await leaseRepository.get_lease_by_houseIds([str(houseId)])
+    if monad.errors:
+        raise Exception(monad.errors["Error"])
+    if not monad.data:
+        raise Exception(f"Lease not found with houseId: {houseId}")
+    leaseResponse = monad.data[0]
+    print(leaseResponse)
+    data = {
+        "firebaseId": firebaseId,
+        "lease": leaseResponse
+    }
+    monad = await schedulerRepository.schedule_lease(data)
+    if monad.errors:
+        raise Exception(monad.errors["Error"])
+    test = LeaseSchedule(**data)
+    print(test.lease["id"])
+    return LeaseSchedule(**data)
+ 
+        
+async def add_tenant(houseKey: str, tenant: TenantInput) -> Tenant:
+    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
+    houseRepository = Repository(request)
+    monad = await houseRepository.get()
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    house = NewHouse(**monad.get_param_at(0))
+
+    monad = await schedulerRepository.schedule_add_tenant_email(tenant.firstName, tenant.lastName, tenant.email, house, "")
+    if monad.errors:
+        raise Exception(monad.errors["Error"])
+    return Tenant(**tenant.to_json(), houseId=0, tenantPosition=0)
+
+
+async def create_tenant_account(houseKey: strawberry.ID, tenant: CreateTenantAccountInput, signature: Upload, registrationToken: str, documentURL: str) -> Tenant:
+    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
+    houseRepository = Repository(request)
+    monad = await houseRepository.get()
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    house = NewHouse(**monad.get_param_at(0))
+
+    request = Request(cloudRun.get_tenant_hostname(), f"/Tenant")
+    tenantRepository = Repository(request)
+    tenantRepository.insert(houseId=house.id, **tenant.to_json())
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    return Tenant(**monad.get_param_at(0))
+
+    monad = await tenantRepository.create_tenant(tenant.to_json(), houseId)
+    if monad.errors:
+        raise Exception(monad.errors["Error"])
+   
+    tenant = Tenant(**monad.result)
+    monad = await schedulerRepository.schedule_sign_lease(tenant, firebaseId, documentURL, signature, registrationToken)
+    if monad.errors:
+        raise Exception(monad.errors["reason"])
+    return tenant
+
+
+async def tenant_login(login: LoginTenantInput) -> Tenant:
+    request = Request(cloudRun.get_house_hostname(), f"/House/{login.houseKey}")
+    houseRepository = Repository(request)
+    monad = await houseRepository.get()
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    house = NewHouse(**monad.get_param_at(0))
+
+    request = Request(cloudRun.get_tenant_hostname(), f"/Login")
+    tenantRepository = Repository(request)
+    tenantRepository.insert(houseId=house.id, **login.to_json())
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    return Tenant(**monad.get_param_at(0))
+
+
+
+async def create_landlord_account(landlord: LandlordInput) -> Landlord:
+    request = Request(cloudRun.get_landlord_hostname(), "/Landlord")
+    landlordRepository = Repository(request)
+    monad = await landlordRepository.insert(**landlord.to_json())
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    return Landlord(**monad.get_param_at(0))
     
+async def landlord_login(login: LoginLandlordInput) -> Landlord:
+    request = Request(cloudRun.get_landlord_hostname(), "/Login")
+    landlordRepository = Repository(request)
+    monad = await landlordRepository.insert(**login.to_json())
+    if monad.has_errors():
+        raise Exception(monad.errors["reason"])
+    return Landlord(**monad.get_param_at(0))
+
+
+
+async def get_device_ids(houseKey: str) -> DeviceId:
+    monad = await houseRepository.get_house_by_house_key(houseKey)
+    if monad.errors:
+        raise Exception(monad.errors["reason"])
+    house = NewHouse(**monad.data)
+    print(house)
+    monad = await tenantRepository.get_tenants_by_house_id(house.id)
+    if monad.errors:
+        raise Exception(monad.errors["reason"])
+    tenants = map(lambda tenant: Tenant(**tenant), monad.data)
+    tenantDeviceIds = map(lambda tenant: tenant.deviceId, tenants)
+    tenantDeviceIds = filter(lambda tenant: tenant != None, tenantDeviceIds)
+    
+    monad = await landlordRepository.get_landlord_by_landlord_id(1)#house.landlordId)
+    if monad.errors:
+        raise Exception(monad.errors["reason"])
+    landlord = Landlord(**monad.data)
+    
+    deviceIds = list(tenantDeviceIds)
+    deviceIds.append(landlord.deviceId)
+
+    return DeviceId(deviceIds)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async def get_lease(houseId: strawberry.ID) -> Lease:
     monad = await leaseRepository.get_lease_by_houseIds([houseId])
     if monad.errors:
-        raise Exception(monad.errors["Error"])
+        raise Exception(monad.errors["reason"])
     leaseResponse = monad.data[0]
     return Lease(**leaseResponse)
-
-
-async def get_houses(id: int) -> AsyncGenerator[List[House], None]:
-    monad = await houseRepository.get_house(id)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    houseResponse = monad.data
-    houseIds = [str(house["id"]) for house in houseResponse]
-    if not houseIds:
-        return []
-    monad = await leaseRepository.get_lease_by_houseIds(houseIds)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    leaseResponse = monad.data
-    houses = []
-    for lease in leaseResponse:
-        index = houseIds.index(str(lease["houseId"]))
-        houses.append(House(**houseResponse[index], lease=Lease(**lease)))
-  
-    return houses
 
     
 async def update_landlord_info(id: strawberry.ID, inputData: LandlordInfoInput) -> LandlordInfo:
@@ -181,135 +333,6 @@ async def udpate_tenant_names(id: strawberry.ID, inputData: List[TenantNameInput
 
 
 
-
-
-async def schedule_lease(houseId: int, firebaseId: str) -> LeaseSchedule:
-    monad = await leaseRepository.get_lease_by_houseIds([str(houseId)])
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    if not monad.data:
-        raise Exception(f"Lease not found with houseId: {houseId}")
-    leaseResponse = monad.data[0]
-    print(leaseResponse)
-    data = {
-        "firebaseId": firebaseId,
-        "lease": leaseResponse
-    }
-    monad = await schedulerRepository.schedule_lease(data)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    test = LeaseSchedule(**data)
-    print(test.lease["id"])
-    return LeaseSchedule(**data)
-    
-async def get_house_by_house_key(houseKey: strawberry.ID) -> House:
-    print(houseKey)
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    houseResponse = monad.data
-    houseId = str(houseResponse["id"])
-
-    monad = await leaseRepository.get_lease_by_houseIds([houseId])
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    leaseResponse = monad.data
-    if leaseResponse:
-        return House(**houseResponse, lease=Lease(**leaseResponse[0]))
-    return None
-        
-async def add_tenant(houseKey: strawberry.ID, tenant: TenantInput) -> Tenant:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    houseResponse = monad.data
-    houseId = str(houseResponse["id"])
-
-    monad = await leaseRepository.get_lease_by_houseIds([houseId])
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    leaseResponse = monad.data
-    if not leaseResponse:
-        return None
-    house = House(**houseResponse, lease=Lease(**leaseResponse[0]))
-    
-    monad = await schedulerRepository.schedule_add_tenant_email(tenant.firstName, tenant.lastName, tenant.email, house, "")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return Tenant(**tenant.to_json(), houseId=0, tenantPosition=0)
-
-
-async def create_tenant_account(houseKey: strawberry.ID, tenant: CreateTenantAccountInput, signature: Upload, registrationToken: str, documentURL: str) -> Tenant:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    houseResponse = monad.data
-
-    houseId = str(houseResponse["id"])
-    firebaseId = houseResponse["firebaseId"]
-
-    monad = await tenantRepository.create_tenant(tenant.to_json(), houseId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-   
-    tenant = Tenant(**monad.result)
-    monad = await schedulerRepository.schedule_sign_lease(tenant, firebaseId, documentURL, signature, registrationToken)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return tenant
-
-
-async def tenant_login(login: LoginTenantInput) -> Tenant:
-    monad = await houseRepository.get_house_by_house_key(login.houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-
-    houseResponse = monad.data
-
-    houseId = str(houseResponse["id"])
-
-    monad = await tenantRepository.login(houseId, login.email, login.password, login.deviceId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return Tenant(**monad.result)
-
-async def create_landlord_account(landlord: LandlordInput) -> Landlord:
-    monad = await landlordRepository.create_landlord(landlord.to_json())
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return Landlord(**monad.result)
-    
-async def landlord_login(login: LoginLandlordInput) -> Landlord:
-   
-    monad = await landlordRepository.login(login.email, login.password, login.deviceId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return Landlord(**monad.result)
-
-
-
-async def get_device_ids(houseKey: str) -> DeviceId:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    house = NewHouse(**monad.data)
-    print(house)
-    monad = await tenantRepository.get_tenants_by_house_id(house.id)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    tenants = map(lambda tenant: Tenant(**tenant), monad.data)
-    tenantDeviceIds = map(lambda tenant: tenant.deviceId, tenants)
-    tenantDeviceIds = filter(lambda tenant: tenant != None, tenantDeviceIds)
-    
-    monad = await landlordRepository.get_landlord_by_landlord_id(1)#house.landlordId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    landlord = Landlord(**monad.data)
-    
-    deviceIds = list(tenantDeviceIds)
-    deviceIds.append(landlord.deviceId)
-
-    return DeviceId(deviceIds)
 
 
 

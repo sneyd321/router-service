@@ -377,6 +377,7 @@ class Lease:
 @strawberry.type
 class House:
     id: int
+    landlordId: int
     houseKey: str
     firebaseId: str
     lease: Lease

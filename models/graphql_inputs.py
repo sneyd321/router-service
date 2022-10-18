@@ -34,6 +34,7 @@ class MaintenanceTicketSenderInput:
 
 @strawberry.input
 class MaintenanceTicketInput:
+    houseId: int
     description: DescriptionInput
     urgency: UrgencyInput
     sender: MaintenanceTicketSenderInput
