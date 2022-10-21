@@ -1,0 +1,482 @@
+{
+    "firebaseId": "fdsf",
+    "houseId": 90,
+    "deviceId": "eGWVvd0EQKOwpISkeH2DDI:APA91bG5BqmSKnZ4digki6Ris9wJrS7MFaNV-AyOvVGviWP6lu13Pi4V9Pzi5yzJlElLOHAh4Vn6CUru9QI0c7FCtvMnoRNyARLATa1zQBPrOBpnHkoZ4oiCIWw9qnowTCwegB1Fr3BY",
+    "lease": {
+        "id": 147,
+        "houseId": 90,
+        "documentName": "asdasd",
+        "documentURL": "asdasdas",
+        "landlordInfo": {
+            "fullName": "Ryan Sneyd",
+            "receiveDocumentsByEmail": true,
+            "emails": [
+                {
+                    "email": "rts1234567@hotmail.com"
+                }
+            ],
+            "contactInfo": true,
+            "contacts": [
+                {
+                    "contact": "rts1234567@hotmail.com"
+                },
+                {
+                    "contact": "416 818 6015"
+                }
+            ]
+        },
+        "landlordAddress": {
+            "streetNumber": "11",
+            "streetName": "Bronte Rd.",
+            "city": "Oakville",
+            "province": "Ontario",
+            "postalCode": "L6L 0E1",
+            "unitNumber": "207",
+            "poBox": "207"
+        },
+        "rentalAddress": {
+            "streetNumber": "3327",
+            "streetName": "Raspberry Bush Trail",
+            "city": "Oakville",
+            "province": "Ontario",
+            "postalCode": "L6L 6V2",
+            "unitName": "Basement",
+            "isCondo": false,
+            "parkingDescriptions": [
+                {
+                    "description": "Garage"
+                }
+            ]
+        },
+        "rent": {
+            "baseRent": "2000.00",
+            "rentMadePayableTo": "Ryan Sneyd",
+            "rentServices": [
+                {
+                    "name": "Parking",
+                    "amount": "200.00"
+                }
+            ],
+            "paymentOptions": [
+                {
+                    "name": "E Transfer"
+                },
+                {
+                    "name": "Post Dated Cheques"
+                },
+                {
+                    "name": "Cash"
+                }
+            ]
+        },
+        "tenancyTerms": {
+            "rentalPeriod": {
+                "rentalPeriod": "Month to Month",
+                "endDate": ""
+            },
+            "startDate": "8/16/2022",
+            "rentDueDate": "First",
+            "paymentPeriod": "Month",
+            "partialPeriod": {
+                "amount": "20.00",
+                "dueDate": "8/31/2022",
+                "startDate": "8/16/2022",
+                "endDate": "8/31/2022",
+                "isEnabled": false
+            }
+        },
+        "services": [
+            {
+                "name": "Gas",
+                "isIncludedInRent": false,
+                "details": []
+            },
+            {
+                "name": "Air Conditioning",
+                "isIncludedInRent": false,
+                "details": []
+            },
+            {
+                "name": "Additional Storage Space",
+                "isIncludedInRent": false,
+                "details": []
+            },
+            {
+                "name": "On-Site Laundry",
+                "isIncludedInRent": false,
+                "isPayPerUse": false,
+                "details": []
+            },
+            {
+                "name": "Guest Parking",
+                "isIncludedInRent": false,
+                "isPayPerUse": false,
+                "details": []
+            }
+        ],
+        "utilities": [
+            {
+                "name": "Electricity",
+                "responsibility": "Tenant",
+                "details": [
+                    {
+                        "detail": "Tenant sets up account with  provider and pays the utiltiy provider"
+                    },
+                    {
+                        "detail": "Tenant pays a portion of the  costs"
+                    },
+                    {
+                        "detail": "Tenant agrees to pay the cost of  required in the premises and the extention thereof"
+                    },
+                    {
+                        "detail": "Tenant further agrees to provide proof to the Landlord on or before the date of possession that the service has been transferred to the Tenant's name."
+                    }
+                ]
+            },
+            {
+                "name": "Heat",
+                "responsibility": "Tenant",
+                "details": [
+                    {
+                        "detail": "Tenant sets up account with  provider and pays the utiltiy provider"
+                    },
+                    {
+                        "detail": "Tenant pays a portion of the  costs"
+                    },
+                    {
+                        "detail": "Tenant agrees to pay the cost of  required in the premises and the extention thereof"
+                    },
+                    {
+                        "detail": "Tenant further agrees to provide proof to the Landlord on or before the date of possession that the service has been transferred to the Tenant's name."
+                    }
+                ]
+            },
+            {
+                "name": "Water",
+                "responsibility": "Tenant",
+                "details": [
+                    {
+                        "detail": "Tenant sets up account with  provider and pays the utiltiy provider"
+                    },
+                    {
+                        "detail": "Tenant pays a portion of the  costs"
+                    },
+                    {
+                        "detail": "Tenant agrees to pay the cost of  required in the premises and the extention thereof"
+                    },
+                    {
+                        "detail": "Tenant further agrees to provide proof to the Landlord on or before the date of possession that the service has been transferred to the Tenant's name."
+                    }
+                ]
+            },
+            {
+                "name": "Internet",
+                "responsibility": "Tenant",
+                "details": [
+                    {
+                        "detail": "Tenant sets up account with  provider and pays the utiltiy provider"
+                    },
+                    {
+                        "detail": "Tenant pays a portion of the  costs"
+                    },
+                    {
+                        "detail": "Tenant agrees to pay the cost of  required in the premises and the extention thereof"
+                    },
+                    {
+                        "detail": "Tenant further agrees to provide proof to the Landlord on or before the date of possession that the service has been transferred to the Tenant's name."
+                    }
+                ]
+            }
+        ],
+        "rentDiscounts": [
+            {
+                "name": "Snow Removal",
+                "amount": "20.00",
+                "details": []
+            }
+        ],
+        "rentDeposits": [
+            {
+                "name": "Rent Deposit",
+                "amount": "2000.00",
+                "details": []
+            },
+            {
+                "name": "Key Deposit",
+                "amount": "300.00",
+                "details": [
+                    {
+                        "detail": "The Tenant agrees and understands that loss of any keys and/or passes to the said premises during the term of the Lease are to be replaced at his own expense."
+                    },
+                    {
+                        "detail": "The Tenant agrees to submit a $300.00 refundable deposit to the Landlord for keys and remote(s)."
+                    }
+                ]
+            },
+            {
+                "name": "Pet Damage Deposit",
+                "amount": "250.00",
+                "details": [
+                    {
+                        "detail": "Tenant agrees to be responsible for any repair or replacement cost due to the presence of any pets on the premises."
+                    },
+                    {
+                        "detail": "Tenant shall, at lease termination, make any repairs that may be necessary to restore any damages caused by pets."
+                    },
+                    {
+                        "detail": "Tenant shall reimburse the Landlord for the cost of any repairs resulting from the damage."
+                    },
+                    {
+                        "detail": "The Tenant agrees to clean up after the pet so that there is no pet hair, urine, or feces remaining or visible anywhere in or on the Leased Premises and the building or common areas where the Leased Premises forms a part"
+                    },
+                    {
+                        "detail": "The Tenant shall keep the pet on a leash while the pet is in the common area of the building in which the Leased Premises forms a part. "
+                    },
+                    {
+                        "detail": "The Landlord shall keep $250.00 security deposit from the reimbustment fund to the Tenant for the some of the cost of painting by the tenant."
+                    }
+                ]
+            },
+            {
+                "name": "Maintenance Ticket Deductable",
+                "amount": "50.00",
+                "details": [
+                    {
+                        "detail": "The Tenant agrees to pay for and be responsible for minor repairs such as light bulbs, tap washers etc. considered as wear and tear."
+                    },
+                    {
+                        "detail": "Tenant further agrees to pay the first $50.00 towards any breakage, repairs or replacement of any appliances, plumbing and electrical equipment for each occurrence."
+                    },
+                    {
+                        "detail": "This deductible applies 30 days after occupancy, this includes all light bulbs and fuse replacement."
+                    }
+                ]
+            }
+        ],
+        "additionalTerms": [
+            {
+                "name": "Post Dated Cheques",
+                "details": [
+                    {
+                        "detail": "Tenant voluntarily agrees to provide 10 post-dated cheques to the Landlord on or before the commencement date of lease."
+                    }
+                ]
+            },
+            {
+                "name": "Tenant Insurance",
+                "details": [
+                    {
+                        "detail": "The Tenant acknowledges that the Landlord's Insurance provides no coverage on the tenant's personal property."
+                    },
+                    {
+                        "detail": "the Tenant agrees to carry contents insurance and provide the proof to the Landlord before or on the closing."
+                    }
+                ]
+            },
+            {
+                "name": "Photo Identification",
+                "details": [
+                    {
+                        "detail": "The Tenant agrees to provide photo identification for the purpose of verifying his identity for security purposes on or before the closing."
+                    }
+                ]
+            },
+            {
+                "name": "Criminal Record",
+                "details": [
+                    {
+                        "detail": "The Tenant warrants that he/she has never had a criminal record."
+                    }
+                ]
+            },
+            {
+                "name": "Never Evicted",
+                "details": [
+                    {
+                        "detail": "The Tenant warrants that he/she has never been evicted by the previous landlord."
+                    }
+                ]
+            },
+            {
+                "name": "No Sublet",
+                "details": [
+                    {
+                        "detail": "The Tenant shall not assign or Sub-Lease the subject property "
+                    }
+                ]
+            },
+            {
+                "name": "No AirBnB",
+                "details": [
+                    {
+                        "detail": "The Tenant shall not rent as AirBnB without the consent of the Landlord."
+                    }
+                ]
+            },
+            {
+                "name": "Condominum Compliance",
+                "details": [
+                    {
+                        "detail": "Tenant, occupants and visitors shall comply with all the By-laws of the Condominium Corporation"
+                    },
+                    {
+                        "detail": "The Landlord agrees to provide the Tenant the Condominium Corporation regulations, rules and by-law before the closing"
+                    }
+                ]
+            },
+            {
+                "name": "Smoking",
+                "details": [
+                    {
+                        "detail": "The Tenant, occupants and visitors agree that there is no smoking on this premises."
+                    }
+                ]
+            },
+            {
+                "name": "Cannabis",
+                "details": [
+                    {
+                        "detail": "There is no marijuana on this premises"
+                    },
+                    {
+                        "detail": "There is no growth or manufacture of marijuana"
+                    },
+                    {
+                        "detail": "There is no drugs, or any illegal substances."
+                    }
+                ]
+            },
+            {
+                "name": "Tenant Painting",
+                "details": [
+                    {
+                        "detail": "The Landlord allows the Tenant to paint the entire unit's wall with the approved color at the Tenant's cost with $250 reimbustment by the Landlord at the end of the lease which will be held as pet security deposit by the Landlord."
+                    },
+                    {
+                        "detail": "Tenant further agrees not to make any decorating changes to the premises without the express written consent of the Landlord or his authorized Agent."
+                    }
+                ]
+            },
+            {
+                "name": "Interior Maintenance",
+                "details": [
+                    {
+                        "detail": "The Tenant agrees to maintain the interior of the premises in good order and condition throughout the term"
+                    },
+                    {
+                        "detail": "The Tenant agrees to leave the premises in the same condition as received, save and except for normal wear and tear on vacant."
+                    }
+                ]
+            },
+            {
+                "name": "Prompt Notice of Accident",
+                "details": [
+                    {
+                        "detail": "The Tenant shall give the Landlord prompt notice of any accident or any defect in the water pipes, heating system, air conditioning, electrical wiring and any major defect of chattels and fixtures"
+                    },
+                    {
+                        "detail": "if the costs of such repairs are to be paid by the Landlord, then any repairs with the cost shall have the Landlord's consent."
+                    }
+                ]
+            },
+            {
+                "name": "Water Drainage",
+                "details": [
+                    {
+                        "detail": "The Tenant agrees not to put or pour any debris, grease or any other matter in the water drainages."
+                    },
+                    {
+                        "detail": "The Tenant further agrees to pay the Entire Amount of bills for all sewer cleaning services resulting from the clogged pipes/sewer back up."
+                    }
+                ]
+            },
+            {
+                "name": "Appliances",
+                "details": [
+                    {
+                        "detail": "The Landlord represents and warrants that the appliances as listed will be in good working order at the commencement of the lease term."
+                    },
+                    {
+                        "detail": "The Tenant agrees to maintain said appliances in a state of ordinary cleanliness at the Tenant's cost."
+                    },
+                    {
+                        "detail": "The Tenant further agrees to be responsible for the full cost of repair or replacement in the event of damage or mechanical breakdown caused by the Tenant's improper use or abuse of said appliances."
+                    }
+                ]
+            },
+            {
+                "name": "Professional Cleaning",
+                "details": [
+                    {
+                        "detail": "The Landlord agrees that the property will be professionally cleaned at his own expense before the commence of the lease. "
+                    },
+                    {
+                        "detail": "The Tenant agrees to have it professionally cleaned at his own expense before the end of the lease. "
+                    },
+                    {
+                        "detail": "This includes but is not limited to; all floors, cupboards, closets, windows, doors and trims, washrooms, front yard and back yard etc."
+                    }
+                ]
+            },
+            {
+                "name": "Tenant Absence",
+                "details": [
+                    {
+                        "detail": "The Tenant shall inform the Landlord or his representative if the Tenant is away over one week and maintain the property at room temperature and shut off the main water to avoid any potential damages."
+                    }
+                ]
+            },
+            {
+                "name": "24 Hour Notice",
+                "details": [
+                    {
+                        "detail": "The landlord may visit the premises on occasional times for maintenance purposes and provide at least 24 hours notice to the Tenant. "
+                    }
+                ]
+            },
+            {
+                "name": "Move In Walkthrough",
+                "details": [
+                    {
+                        "detail": "The Landlord and the Tenant will do a move-in walk-through of the premises on the commencement day of the lease period to assess the condition and any pre-existing damage, and clarify the responsibilities of both parties."
+                    }
+                ]
+            },
+            {
+                "name": "Move out Walkthrough",
+                "details": [
+                    {
+                        "detail": "The Landlord and the Tenant will do a move-out walk-through of the premises at the end of the lease period to assess the condition and any damage, and clarify the responsibilities of both parties."
+                    }
+                ]
+            },
+            {
+                "name": "End of Lease Term",
+                "details": [
+                    {
+                        "detail": "It is further agreed and understood that the Tenant shall give at least SIXTY (60) days written notice of their intention to vacate said premises at the end of the term of the Lease. "
+                    },
+                    {
+                        "detail": "Provided further the Landlord shall have the right in addition to any other rights that he may have pursuant to the Landlord and Tenant Act."
+                    }
+                ]
+            },
+            {
+                "name": "Property Showing",
+                "details": [
+                    {
+                        "detail": "The Tenant allows the Landlord or Agents to show the property at all reasonable hours to prospective Buyers or Tenants"
+                    },
+                    {
+                        "detail": "The Tenant makes said premises to be in good conditions for all the showings, after giving the Tenant at least twenty four (24) hours notice of such showing."
+                    }
+                ]
+            }
+        ],
+        "tenantNames": [
+            {
+                "name": "Timmy Tenant"
+            }
+        ]
+    }
+}

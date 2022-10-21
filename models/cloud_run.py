@@ -3,7 +3,7 @@ from google.oauth2 import service_account
 
 class CloudRun:
 
-    def __init__(self, filePath=r"./models/roomr-222721-c05604718d80.json"):
+    def __init__(self, filePath=r"./models/static/roomr-222721-c05604718d80.json"):
         self.services = {}
         credentials = service_account.Credentials.from_service_account_file(filePath)
         self.client = run_v2.ServicesAsyncClient(credentials=credentials)

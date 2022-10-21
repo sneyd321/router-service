@@ -1,26 +1,18 @@
 import strawberry
 from typing import Optional, Union, List, AsyncGenerator
-from models.graphql_inputs import *
-from models.graphql_types import *
-from models.request import Request
-import json, itertools, asyncio
-from strawberry.types import Info
 from strawberry.file_uploads import Upload
-import base64
+
 from models.cloud_run import CloudRun
 from models.monad import RequestMaybeMonad
-from models.repository import Repository, LeaseRepository, SchedulerRepository, MaintenanceTicketRepository, TenantRepository, LandlordRepository
+from models.repository import Repository
+from models.request import Request
+from models.graphql_inputs import *
+from models.graphql_types import *
 
+import json, itertools, asyncio, base64
 
 cloudRun = CloudRun()
 cloudRun.discover_dev()
-
-
-leaseRepository = LeaseRepository()
-schedulerRepository = SchedulerRepository()
-tenantRepository = TenantRepository()
-landlordRepository = LandlordRepository()
-
 
 async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
     request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/House/{houseId}/MaintenanceTicket")
@@ -45,7 +37,7 @@ async def get_maintenance_tickets_by_house_key(houseKey: str) -> List[Maintenanc
         raise Exception(monad.error_status["reason"])
     return MaintenanceTicket(**monad.get_param_at(0))
 
-async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput) -> MaintenanceTicket:
+async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput, image: str) -> MaintenanceTicket:
     request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
     houseRepository = Repository(request)
     monad = await houseRepository.get()
@@ -59,13 +51,22 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
     monad = await maintenanceTicketRepository.insert(**maintenanceTicket.to_json())
     if monad.has_errors():
         raise Exception(monad.error_status["reason"])
-    return MaintenanceTicket(**monad.get_param_at(0))
+    maintenanceTicket = MaintenanceTicket(**monad.get_param_at(0))
 
-    monad = await schedulerRepository.schedule_maintenance_ticket_upload(houseKey, firebaseId, maintenanceTicket, picture)
+    request = Request(cloudRun.get_scheduler_hostname(), "/MaintenanceTicket")
+    repository = Repository(request)
+    monad = await schedulerRepository.insert(**{
+        "firebaseId": maintenanceTicket.firebaseId,
+        "imageURL": maintenanceTicket.imageURL,
+        "houseKey": houseKey,
+        "maintenanceTicketId": maintenanceTicket.id,
+        "description": maintenanceTicket.description.descriptionText,
+        "firstName": maintenanceTicket.sender.firstName,
+        "lastName": maintenanceTicket.sender.lastName,
+        "image": image
+    })
     if monad.errors:
         raise Exception(monad.errors["reason"])
-    print(monad.result)
-
     return maintenanceTicket
 
 
@@ -106,6 +107,7 @@ async def schedule_lease(houseId: int, firebaseId: str) -> LeaseSchedule:
         raise Exception(monad.errors["Error"])
     if not monad.data:
         raise Exception(f"Lease not found with houseId: {houseId}")
+
     leaseResponse = monad.data[0]
     print(leaseResponse)
     data = {
@@ -128,13 +130,24 @@ async def add_tenant(houseKey: str, tenant: TenantInput) -> Tenant:
         raise Exception(monad.errors["reason"])
     house = NewHouse(**monad.get_param_at(0))
 
-    monad = await schedulerRepository.schedule_add_tenant_email(tenant.firstName, tenant.lastName, tenant.email, house, "")
+    #TODO: Get Lease
+
+    request = Request(cloudRun.get_scheduler_hostname(), f"/AddTenantEmail")
+    schedulerRepository = Repository(request)
+    monad = await schedulerRepository.insert(**{
+        "firstName": tenant.firstName,
+        "lastName": tenant.lastName,
+        "email": tenant.email,
+        "houseKey": houseKey,
+        "documentURL": "str",
+        "firebaseId": house.firebaseId,
+    })
     if monad.errors:
         raise Exception(monad.errors["Error"])
     return Tenant(**tenant.to_json(), houseId=0, tenantPosition=0)
 
 
-async def create_tenant_account(houseKey: strawberry.ID, tenant: CreateTenantAccountInput, signature: Upload, registrationToken: str, documentURL: str) -> Tenant:
+async def create_tenant_account(houseKey: str, tenant: CreateTenantAccountInput, signature: str, registrationToken: str, documentURL: str) -> Tenant:
     request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
     houseRepository = Repository(request)
     monad = await houseRepository.get()
@@ -147,14 +160,20 @@ async def create_tenant_account(houseKey: strawberry.ID, tenant: CreateTenantAcc
     tenantRepository.insert(houseId=house.id, **tenant.to_json())
     if monad.has_errors():
         raise Exception(monad.errors["reason"])
-    return Tenant(**monad.get_param_at(0))
-
-    monad = await tenantRepository.create_tenant(tenant.to_json(), houseId)
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
+    tenant = Tenant(**monad.get_param_at(0))
    
-    tenant = Tenant(**monad.result)
-    monad = await schedulerRepository.schedule_sign_lease(tenant, firebaseId, documentURL, signature, registrationToken)
+    request = Request(cloudRun.get_scheduler_hostname(), "/SignLease")
+    repository = Repository(request)
+    monad = await repository.insert(**{
+        "firstName": tenant.firstName,
+        "lastName": tenant.lastName,
+        "email": tenant.email,
+        "documentURL": documentURL,
+        "tenantPosition": tenant.tenantPosition,
+        "tenantState": tenant.tenantState,
+        "signiture": signature,
+        "firebaseId": house.firebaseId,
+    })
     if monad.errors:
         raise Exception(monad.errors["reason"])
     return tenant
@@ -174,7 +193,6 @@ async def tenant_login(login: LoginTenantInput) -> Tenant:
     if monad.has_errors():
         raise Exception(monad.errors["reason"])
     return Tenant(**monad.get_param_at(0))
-
 
 
 async def create_landlord_account(landlord: LandlordInput) -> Landlord:
