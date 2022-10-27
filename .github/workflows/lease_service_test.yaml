@@ -90,7 +90,11 @@ jobs:
           gcloud iam service-accounts keys create ./models/static/ServiceAccount.json --iam-account=cloud-run-admin@roomr-222721.iam.gserviceaccount.com
           docker build -t sneyd321/router .
           docker compose run -ePORT=8081 router pytest tests/test_lease_service.py
-
+      
+      - name: Terraform Destroy
+        if: always()
+        run: terraform destroy -auto-approve -var="project_id"=roomr-222721 -var="db_pass"=root
+  
       - name: Delete service account key
         if: always()
         run: |
