@@ -76,7 +76,7 @@ jobs:
         run: |
           PUBLIC_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
           echo $PUBLIC_IP
-          python alembic_setup.py --user=test --password=homeowner --database=roomr --host=$PUBLIC_IP
+          python alembic_setup.py --user=root --password=root --database=roomr --host=$PUBLIC_IP
           alembic revision --autogenerate
           alembic upgrade head
 
