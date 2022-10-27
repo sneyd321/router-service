@@ -10,10 +10,10 @@ import aiohttp
 cloudRun = CloudRun()
 #cloudRun.discover_dev()
 cloudRun.discover()
-
 leaseRepository = LeaseRepository(cloudRun)
 
 async def test_Router_insert_lease_successfully():
+    
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)

@@ -6,12 +6,12 @@ class CloudRun:
     def __init__(self, filePath=r"./models/static/ServiceAccount.json"):
         self.services = {}
         credentials = service_account.Credentials.from_service_account_file(filePath)
-        self.client = run_v2.ServicesAsyncClient(credentials=credentials)
+        self.client = run_v2.ServicesClient(credentials=credentials)
 
-    async def discover(self):
+    def discover(self):
         request = run_v2.ListServicesRequest(parent="projects/roomr-222721/locations/us-central1")
-        page_result = await self.client.list_services(request=request)
-        async for service in page_result:
+        page_result = self.client.list_services(request=request)
+        for service in page_result:
             self.services[service.name.split("/")[-1]] = service.uri
 
     def discover_dev(self):

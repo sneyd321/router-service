@@ -3,7 +3,7 @@ from models.cloud_run import CloudRun
 
 async def test_Router_service_lists_services_as_dictionary():
     cloudRun = CloudRun()
-    await cloudRun.discover()
+    cloudRun.discover()
     assert cloudRun.get_maintenance_ticket_hostname() == "https://maintenance-ticket-service-s5xgw6tidq-uc.a.run.app"
         
 
