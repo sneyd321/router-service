@@ -1,0 +1,97 @@
+name: Run Outage Tests
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Checkout Lease Service
+        uses: actions/checkout@v3
+        with:
+          repository: sneyd321/lease-service-v2
+          path: lease-service
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/959426188245/locations/global/workloadIdentityPools/github-action-pool-1/providers/github-action-provider-1'
+          service_account: 'artifact-repository-access@roomr-222721.iam.gserviceaccount.com'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.13.0
+      
+      - name: Terraform Init
+        id: init
+        run: terraform init    
+      
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+      
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -var="project_id"=roomr-222721 -var="db_pass"=root
+        continue-on-error: true
+      
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+      
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var="project_id"=roomr-222721 -var="db_pass"=root
+      
+      - name: Sleep for 30 seconds to allow VM to boot container
+        run: sleep 30s
+        shell: bash
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker --quiet
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install alembic dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install alembic
+          pip install aiomysql
+          pip install cryptography
+      
+      - name: Run Lease Alembic
+        working-directory: "lease-service"
+        run: |
+          PUBLIC_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
+          echo $PUBLIC_IP
+          python alembic_setup.py --user=test --password=homeowner --database=roomr --host=$PUBLIC_IP
+          alembic revision --autogenerate
+          alembic upgrade head
+
+      - name: Change DB
+        run: |
+          PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
+          gcloud run deploy lease-service --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/lease-service:latest --allow-unauthenticated --update-secrets=DB_PASS=DB_PASS:1,/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root
+
+      - name: Run Tests
+        run: |
+          gcloud iam service-accounts keys create ./models/static/ServiceAccount.json --iam-account=cloud-run-admin@roomr-222721.iam.gserviceaccount.com
+          docker build -t sneyd321/router .
+          docker compose run -ePORT=8081 router pytest tests/test_lease_service.py
+
+      - name: Delete service account key
+        if: always()
+        run: |
+          python ./models/static/remove_key.py

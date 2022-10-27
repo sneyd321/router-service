@@ -3,13 +3,15 @@ import asyncio
 
 class Request:
 
-    def __init__(self, hostname, resourcePath):
+    def __init__(self, hostname, resourcePath, **kwargs):
         self.hostname = hostname
         self.resourcePath = resourcePath
+
+    def create_new_session(self):
         self.session = aiohttp.ClientSession()
 
-    def get_session(self):
-        return self.session
+    def set_session(self, session):
+        self.session = session
 
     async def determine_response(self, response):
         print(response.status)

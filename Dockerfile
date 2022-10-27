@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PORT=$PORT
 
+
 COPY . .
 
 #CMD ["python", "./main.py"]

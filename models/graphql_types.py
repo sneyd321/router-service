@@ -322,18 +322,6 @@ class AdditionalTerm:
 
 
 
-   
-@strawberry.type
-class TenantName:
-    name: str
-
-    def __init__(self, **kwargs):
-        self.name = kwargs.get("name")
-        self.email = kwargs.get("email")
-
-
-
-
 @strawberry.type
 class Lease:
     id: int
@@ -351,7 +339,6 @@ class Lease:
     rentDeposits: List[RentDeposit]
     rentDiscounts: List[RentDiscount]
     additionalTerms: List[AdditionalTerm]
-    tenantNames: List[TenantName]
 
     def __init__(self, **kwargs):
         self.id = kwargs.get("id")
@@ -366,7 +353,6 @@ class Lease:
         self.rentDiscounts = [RentDiscount(**json) for json in kwargs.get("rentDiscounts")]
         self.rentDeposits = [RentDeposit(**json) for json in kwargs.get("rentDeposits")]
         self.additionalTerms = [AdditionalTerm(**json) for json in kwargs.get("additionalTerms")]
-        self.tenantNames = [TenantName(**json) for json in kwargs.get("tenantNames")]
         self.documentURL = kwargs.get("documentURL")
         self.documentName = kwargs.get("documentName")
         self.documentState = kwargs.get("documentState")

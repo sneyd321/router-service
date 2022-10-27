@@ -101,9 +101,8 @@ class LandlordInfoInput:
             "fullName": self.fullName,
             "receiveDocumentsByEmail": self.receiveDocumentsByEmail,
             "contactInfo": self.contactInfo,
-            "contacts": [contact.to_json() for contact in self.contacts],
-
-            "emails": [email.to_json() for email in self.emails]
+            "contacts": self.contacts,
+            "emails": self.emails
         }
 
 @strawberry.input
@@ -126,17 +125,6 @@ class RentalAddressInput:
     isCondo: bool
     parkingDescriptions: List[ParkingDescriptionInput]
 
-    def to_json(self):
-        return {
-            "streetNumber": self.streetNumber,
-            "streetName": self.streetName,
-            "city": self.city,
-            "province": self.province,
-            "postalCode": self.postalCode,
-            "unitName": self.unitName,
-            "isCondo": self.isCondo,
-            "parkingDescriptions": [parkingDescription.to_json() for parkingDescription in self.parkingDescriptions]
-        }
 
 @strawberry.input
 class RentServiceInput:
@@ -226,7 +214,7 @@ class DetailInput:
 
     def to_json(self):
         return {
-            "detail": self.detail.replace("$", "\$")
+            "detail": self.detail
         }
 
 @strawberry.input
@@ -297,14 +285,7 @@ class AdditionalTermInput:
 
 
     
-@strawberry.input
-class TenantNameInput:
-    name: str
 
-    def to_json(self):
-        return {
-            "name": self.name
-        }
 
 @strawberry.input
 class LeaseInput:
@@ -318,21 +299,19 @@ class LeaseInput:
     rentDeposits: List[RentDepositInput]
     rentDiscounts: List[RentDiscountInput]
     additionalTerms: List[AdditionalTermInput]
-    tenantNames: List[TenantNameInput]
 
     def to_json(self):
         return {
-            "landlordInfo": self.landlordInfo.to_json(),
-            "landlordAddress": self.landlordAddress.to_json(),
-            "rentalAddress": self.rentalAddress.to_json(),
-            "rent": self.rent.to_json(),
-            "tenancyTerms": self.tenancyTerms.to_json(),
-            "services": [service.to_json() for service in self.services],
-            "utilities": [utility.to_json() for utility in self.utilities],
-            "rentDiscounts": [rentDiscount.to_json() for rentDiscount in self.rentDiscounts],
-            "rentDeposits": [rentDeposit.to_json() for rentDeposit in self.rentDeposits],
-            "additionalTerms": [additionalTerm.to_json() for additionalTerm in self.additionalTerms],
-            "tenantNames": [tenantName.to_json() for tenantName in self.tenantNames]
+            "landlordInfo": self.landlordInfo,
+            "landlordAddress": self.landlordAddress,
+            "rentalAddress": self.rentalAddress,
+            "rent": self.rent,
+            "tenancyTerms": self.tenancyTerms,
+            "services": self.services,
+            "utilities": self.utilities,
+            "rentDiscounts": self.rentDiscounts,
+            "rentDeposits": self.rentDeposits,
+            "additionalTerms": self.additionalTerms
         }
 
   
@@ -341,7 +320,7 @@ class LeaseInput:
 
 
 @strawberry.input
-class TenantInput:
+class AddTenantEmailInput:
     firstName: str
     lastName: str
     email: str
@@ -358,12 +337,13 @@ class TenantInput:
 
 
 @strawberry.input
-class CreateTenantAccountInput:
+class TenantInput:
     firstName: str
     lastName: str
     email: str
     password: str
     tenantState: str
+
 
 
     def to_json(self):

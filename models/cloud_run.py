@@ -3,7 +3,7 @@ from google.oauth2 import service_account
 
 class CloudRun:
 
-    def __init__(self, filePath=r"./models/static/roomr-222721-c05604718d80.json"):
+    def __init__(self, filePath=r"./models/static/ServiceAccount.json"):
         self.services = {}
         credentials = service_account.Credentials.from_service_account_file(filePath)
         self.client = run_v2.ServicesAsyncClient(credentials=credentials)
@@ -20,7 +20,7 @@ class CloudRun:
         'landlord-service': 'http://localhost:8086', 
         'tenant-service': 'http://localhost:8085', 
         'roomr-tenant': '', 
-        'lease-service': 'http://localhost:8083', 
+        'lease-service': 'http://localhost:8000', 
         'house-service': 'http://localhost:8082', 
         'scheduler': 'http://localhost:8084', 
         'maintenance-ticket-service': 'http://localhost:8083'
@@ -40,7 +40,6 @@ class CloudRun:
 
     def get_house_hostname(self):
         return self.get_service("house-service")
-
 
     def get_scheduler_hostname(self):
         return self.get_service("scheduler")
