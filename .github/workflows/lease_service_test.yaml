@@ -52,7 +52,7 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve -var="project_id"=roomr-222721 -var="db_pass"=root
       
-      - name: Sleep for 30 seconds to allow VM to boot container
+      - name: Sleep for 60 seconds to allow VM to boot container
         run: sleep 60s
         shell: bash
 
@@ -80,10 +80,10 @@ jobs:
           alembic revision --autogenerate
           alembic upgrade head
 
-      - name: Change DB
+      - name: Change DB HOST
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
-          gcloud run deploy lease-service --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/lease-service:latest --allow-unauthenticated --update-secrets=DB_PASS=DB_PASS:1,/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root
+          gcloud run deploy lease-service --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/lease-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root
 
       - name: Run Tests
         run: |
@@ -91,7 +91,7 @@ jobs:
           docker build -t sneyd321/router .
           docker compose run -ePORT=8081 router pytest tests/test_lease_service.py
       
-      - name: Change DB
+      - name: Change Back DB HOST
         if: always()
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
