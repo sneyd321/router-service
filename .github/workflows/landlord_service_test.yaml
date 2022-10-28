@@ -95,7 +95,7 @@ jobs:
       - name: Change Back DB HOST
         if: always()
         run: |
-          gcloud run services delete lease-service-test --region=us-central1 --quiet
+          gcloud run services delete landlord-service-test --region=us-central1 --quiet
 
       - name: Terraform Destroy
         if: always()

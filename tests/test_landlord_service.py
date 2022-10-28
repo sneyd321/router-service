@@ -6,9 +6,10 @@ from models.graphql_inputs import LandlordInput, LoginLandlordInput
 import aiohttp, uuid
 
 cloudRun = CloudRun()
-#cloudRun.discover_dev()
-cloudRun.discover()
-repository = LandlordRepository(cloudRun.get_landlord_test_hostname())
+cloudRun.discover_dev()
+
+#cloudRun.discover()
+repository = LandlordRepository(cloudRun.get_landlord_hostname())
 
 async def test_Router_insert_landlord_returns_successfully():
     async with aiohttp.ClientSession() as session:
@@ -36,6 +37,13 @@ async def test_Router_insert_landlord_returns_conflict_error_on_duplicate_email(
 
 async def test_Router_landlord_login_returns_successfully():
     async with aiohttp.ClientSession() as session:
+        landlord = LandlordInput(**{
+            "firstName": "Ryan",
+            "lastName": "Sneyd",
+            "email": "aaaa@s.com",
+            "password": "aaaaaa"
+        })
+        await repository.create_landlord(session, landlord) 
         login = LoginLandlordInput(**{
             "email": "aaaa@s.com",
             "password": "aaaaaa",
@@ -53,9 +61,9 @@ async def test_Router_landlord_login_returns_401_error():
         "email": "aaaaa@s.com",
         "password": "aaaaaa"
         })
-        monad = await repository.create_landlord(session, landlord) 
+        await repository.create_landlord(session, landlord) 
         login = LoginLandlordInput(**{
-            "email": "aaaa@s.com",
+            "email": "aaaaa@s.com",
             "password": "bbbbbb",
             "deviceId": "abc"
         })
