@@ -30,7 +30,7 @@ async def test_Router_schedules_maintenance_ticket_upload_successfully():
                     "email": "a@s.com"
                 }
             })
-        monad = await repository.schedule_maintenance_ticket_upload("DAFFDS", "FirebaseID", maintenanceTicket, "<Base 64 String>")
+        monad = await repository.schedule_maintenance_ticket_upload(session, "DAFFDS", "FirebaseID", maintenanceTicket, "<Base 64 String>")
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}
     
    
@@ -40,7 +40,7 @@ async def test_Router_schedules_generate_lease_upload_successfully():
         with open(r"./tests/lease_test.json", mode="r") as lease_json:
             leaseData = json.load(lease_json)
             lease = Lease(**leaseData)
-        monad = await repository.schedule_lease("FirebaseID", lease)
+        monad = await repository.schedule_lease(session, "FirebaseID", lease)
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}
 
 async def test_Router_schedules_add_tenant_email_upload_successfully():
@@ -54,7 +54,7 @@ async def test_Router_schedules_add_tenant_email_upload_successfully():
             "houseId": 1,
             "deviceId": ""
         })
-        monad = await repository.schedule_add_tenant_email("ADASDS", "FirebaseID", "URL", tenant)
+        monad = await repository.schedule_add_tenant_email(session, "ADASDS", "FirebaseID", "URL", tenant)
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}
 
 async def test_Router_schedules_sign_tenant_upload_successfully():
@@ -63,8 +63,10 @@ async def test_Router_schedules_sign_tenant_upload_successfully():
             "firstName": "Timmy11",
             "lastName": "Tenant",
             "email": "a@s.com",
-            "password": "aaaaaa",
             "tenantState": "Not Approved",
+            "tenantPosition": 1,
+            "houseId": 1,
+            "deviceId": ""
         })
-        monad = await repository.schedule_sign_lease(tenant, firebaseId, documentURL, signature)
+        monad = await repository.schedule_sign_lease(session, tenant, firebaseId, documentURL, signature)
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}

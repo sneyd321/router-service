@@ -126,7 +126,7 @@ class SchedulerRepository(Repository):
         })
 
         
-    async def schedule_lease(self, session, request, firebaseId, lease):
+    async def schedule_lease(self, session, firebaseId, lease):
         request = Request(self.hostname, "/Lease/Ontario")
         request.set_session(session)
         return await self.post(request **{
