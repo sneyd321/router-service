@@ -70,6 +70,7 @@ jobs:
           pip install alembic
           pip install aiomysql
           pip install cryptography
+          pip install passlib
       
       - name: Run landlord-service Alembic
         working-directory: "landlord-service"
