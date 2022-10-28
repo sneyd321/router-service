@@ -1,5 +1,5 @@
-name: Run Outage Tests
-on: [push]
+name: Run Maintenance Ticket Tests
+on: [workflow_dispatch]
 
 jobs:
   build:
@@ -94,7 +94,7 @@ jobs:
       - name: Change Back DB HOST
         if: always()
         run: |
-          gcloud run services delete test-lease-service --region=us-central1
+          gcloud run services delete test-lease-service --region=us-central1 --quiet
 
       - name: Terraform Destroy
         if: always()

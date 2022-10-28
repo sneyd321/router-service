@@ -1,4 +1,4 @@
-name: Run Outage Tests
+name: Run Lease Tests
 on: [push]
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Checkout Lease Service
+      - name: Checkout Maintenance Ticket Service
         uses: actions/checkout@v3
         with:
           repository: sneyd321/maintenance-ticket-service
@@ -80,7 +80,7 @@ jobs:
           alembic revision --autogenerate
           alembic upgrade head
 
-      - name: Change DB HOST
+      - name: Create Test Cloud Run Instance
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
           gcloud run deploy maintenance-ticket-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/maintenance-ticket-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root
@@ -91,10 +91,10 @@ jobs:
           docker build -t sneyd321/router .
           docker compose run -ePORT=8081 router pytest tests/test_maintenance_ticket_service.py
       
-      - name: Change Back DB HOST
+      - name: Delete Test Cloud Run Instance
         if: always()
         run: |
-          gcloud run services delete test-lease-service --region=us-central1
+          gcloud run services delete test-lease-service --region=us-central1 --quiet
 
       - name: Terraform Destroy
         if: always()
