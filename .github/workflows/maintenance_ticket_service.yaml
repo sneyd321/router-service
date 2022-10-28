@@ -83,7 +83,7 @@ jobs:
       - name: Create Test Cloud Run Instance
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
-          gcloud run deploy maintenance-ticket-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/maintenance-ticket-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root
+          gcloud run deploy maintenance-ticket-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/maintenance-ticket-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root --vpc-connector=vpc-connector-2
 
       - name: Run Tests
         run: |
