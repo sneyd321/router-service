@@ -111,12 +111,12 @@ class SchedulerRepository(Repository):
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def schedule_maintenance_ticket_upload(self, house, maintenanceTicket, image):
+    async def schedule_maintenance_ticket_upload(self, houseKey, firebaseId, maintenanceTicket, image):
         request = Request(self.hostname, "/MaintenanceTicket")
         return await self.post(request, **{
-            "firebaseId": maintenanceTicket.firebaseId,
+            "firebaseId": firebaseId,
             "imageURL": maintenanceTicket.imageURL,
-            "houseKey": house.houseKey,
+            "houseKey": houseKey,
             "maintenanceTicketId": maintenanceTicket.id,
             "description": maintenanceTicket.description.descriptionText,
             "firstName": maintenanceTicket.sender.firstName,
@@ -125,25 +125,25 @@ class SchedulerRepository(Repository):
         })
 
         
-    async def schedule_lease(self, house, lease):
+    async def schedule_lease(self, firebaseId, lease):
         request = Request(self.hostname, "/Lease/Ontario")
         return await self.post(request **{
-            "firebaseId": house.firebaseId,
+            "firebaseId": firebaseId,
             "lease": lease.to_json()
         })
         
-    async def schedule_add_tenant_email(self, house, lease, tenant):
+    async def schedule_add_tenant_email(self, houseKey, firebaseId, documentURL, tenant):
         request = Request(self.hostname, f"/AddTenantEmail")
         return await self.post(request, **{
             "firstName": tenant.firstName,
             "lastName": tenant.lastName,
             "email": tenant.email,
-            "houseKey": house.houseKey,
+            "houseKey": houseKey,
             "documentURL": lease.documentURL,
-            "firebaseId": house.firebaseId,
+            "firebaseId": firebaseId,
         })
     
-    async def schedule_sign_lease(self, tenant, house, documentURL, signature):
+    async def schedule_sign_lease(self, tenant, firebaseId, documentURL, signature):
         request = Request(self.hostname, "/SignLease")
         return await self.post(request, **{
             "firstName": tenant.firstName,
@@ -153,7 +153,7 @@ class SchedulerRepository(Repository):
             "tenantPosition": tenant.tenantPosition,
             "tenantState": tenant.tenantState,
             "signiture": signature,
-            "firebaseId": house.firebaseId,
+            "firebaseId": firebaseId,
         })
        
 
