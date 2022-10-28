@@ -26,6 +26,8 @@ class CloudRun:
         'maintenance-ticket-service': 'http://localhost:8083'
     }
 
+    
+
     def get_service(self, name):
         try:
             return self.services[name]
@@ -35,8 +37,14 @@ class CloudRun:
     def get_maintenance_ticket_hostname(self):
         return self.get_service("maintenance-ticket-service")
 
+    def get_maintenance_ticket_test_hostname(self):
+        return self.get_service("maintenance-ticket-service-test")
+
     def get_lease_hostname(self):
         return self.get_service("lease-service")
+
+    def get_lease_test_hostname(self):
+        return self.get_service("lease-service-test")
 
     def get_house_hostname(self):
         return self.get_service("house-service")
