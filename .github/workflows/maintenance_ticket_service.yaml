@@ -15,8 +15,8 @@ jobs:
       - name: Checkout Lease Service
         uses: actions/checkout@v3
         with:
-          repository: sneyd321/lease-service-v2
-          path: lease-service
+          repository: sneyd321/maintenance-ticket-service
+          path: maintenance-ticket-service
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -71,8 +71,8 @@ jobs:
           pip install aiomysql
           pip install cryptography
       
-      - name: Run Lease Alembic
-        working-directory: "lease-service"
+      - name: Run Maintenance Ticket Alembic
+        working-directory: "maintenance-ticket-service"
         run: |
           PUBLIC_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
           echo $PUBLIC_IP
@@ -83,13 +83,13 @@ jobs:
       - name: Change DB HOST
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
-          gcloud run deploy lease-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/lease-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root
+          gcloud run deploy maintenance-ticket-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/maintenance-ticket-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root
 
       - name: Run Tests
         run: |
           gcloud iam service-accounts keys create ./models/static/ServiceAccount.json --iam-account=cloud-run-admin@roomr-222721.iam.gserviceaccount.com
           docker build -t sneyd321/router .
-          docker compose run -ePORT=8081 router pytest tests/test_lease_service.py
+          docker compose run -ePORT=8081 router pytest tests/test_maintenance_ticket_service.py
       
       - name: Change Back DB HOST
         if: always()
