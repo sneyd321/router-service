@@ -45,7 +45,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         working-directory: "scheduler"
-        run: terraform plan -no-color -var="project_id"=roomr-222721 -var="db_pass"=root
+        run: terraform plan -no-color 
         continue-on-error: true
       
       - name: Terraform Plan Status
