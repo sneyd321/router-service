@@ -10,11 +10,11 @@ import aiohttp
 cloudRun = CloudRun()
 #cloudRun.discover_dev()
 
+cloudRun.discover()
+leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
+
 
 async def test_Router_insert_lease_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
-
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -23,8 +23,6 @@ async def test_Router_insert_lease_successfully():
     assert not monad.has_errors()
 
 async def test_Router_get_lease_by_house_id():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -37,8 +35,6 @@ async def test_Router_get_lease_by_house_id():
 
 
 async def test_Router_returns_error_with_invalid_query_parameter_on_lease_service():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         request = Request(cloudRun.get_lease_hostname(), f"/Lease?houses=vcxzfdvcxz")
         request.set_session(session)
@@ -47,8 +43,6 @@ async def test_Router_returns_error_with_invalid_query_parameter_on_lease_servic
 
 
 async def test_Router_updates_landlord_info_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -63,8 +57,6 @@ async def test_Router_updates_landlord_info_successfully():
 
 
 async def test_Router_updates_landlord_address_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -77,8 +69,6 @@ async def test_Router_updates_landlord_address_successfully():
 
 
 async def test_Router_updates_rental_address_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -92,8 +82,6 @@ async def test_Router_updates_rental_address_successfully():
 
 
 async def test_Router_updates_rent_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -106,8 +94,6 @@ async def test_Router_updates_rent_successfully():
 
 
 async def test_Router_updates_tenancy_terms_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -119,8 +105,6 @@ async def test_Router_updates_tenancy_terms_successfully():
         assert monad.get_param_at(0) == leaseData["tenancyTerms"]
 
 async def test_Router_updates_services_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -133,8 +117,6 @@ async def test_Router_updates_services_successfully():
 
 
 async def test_Router_updates_utilities_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -147,8 +129,6 @@ async def test_Router_updates_utilities_successfully():
 
 
 async def test_Router_updates_rent_deposits_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -161,8 +141,6 @@ async def test_Router_updates_rent_deposits_successfully():
 
 
 async def test_Router_updates_rent_discounts_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
@@ -175,8 +153,6 @@ async def test_Router_updates_rent_discounts_successfully():
 
 
 async def test_Router_updates_additional_terms_successfully():
-    cloudRun.discover()
-    leaseRepository = LeaseRepository(cloudRun.get_lease_test_hostname())
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json") as lease_test:
             leaseData = json.load(lease_test)
