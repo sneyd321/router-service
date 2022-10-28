@@ -69,5 +69,5 @@ async def test_Router_schedules_sign_tenant_upload_successfully():
             "houseId": 1,
             "deviceId": ""
         })
-        monad = await repository.schedule_sign_lease(session, tenant, "firebaseId", "documentURL", signature)
+        monad = await repository.schedule_sign_lease(session, tenant, "firebaseId", "documentURL", "signature")
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}
