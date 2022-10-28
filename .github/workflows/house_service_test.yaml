@@ -1,4 +1,4 @@
-name: Run Landlord Tests
+name: Run House Tests
 on: [workflow_dispatch]
 
 jobs:
@@ -12,11 +12,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Checkout Landlord Service
+      - name: Checkout Maintenance Ticket Service
         uses: actions/checkout@v3
         with:
-          repository: sneyd321/landlord-service-v2
-          path: landlord-service
+          repository: sneyd321/house-service-v2
+          path: house-service
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -71,8 +71,8 @@ jobs:
           pip install aiomysql
           pip install cryptography
       
-      - name: Run landlord-service Alembic
-        working-directory: "landlord-service"
+      - name: Run House Alembic
+        working-directory: "house-service"
         run: |
           PUBLIC_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
           echo $PUBLIC_IP
@@ -80,21 +80,21 @@ jobs:
           alembic revision --autogenerate
           alembic upgrade head
 
-      - name: Change DB HOST
+      - name: Create Test Cloud Run Instance
         run: |
           PRIVATE_IP=$(gcloud compute instances describe mysql-test-instance-1 --zone=us-central1-a --format='get(networkInterfaces[0].networkIP)')
-          gcloud run deploy landlord-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/landlord-service:latest --allow-unauthenticated --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root --vpc-connector=vpc-connector-2
+          gcloud run deploy house-service-test --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/house-service:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/firebase_service_account:1 --update-env-vars DB_HOST=$PRIVATE_IP,DB_USER=root,DB_PASS=root --vpc-connector=vpc-connector-2
 
       - name: Run Tests
         run: |
           gcloud iam service-accounts keys create ./models/static/ServiceAccount.json --iam-account=cloud-run-admin@roomr-222721.iam.gserviceaccount.com
           docker build -t sneyd321/router .
-          docker compose run -ePORT=8081 router pytest tests/test_landlord_service.py
+          docker compose run -ePORT=8081 router pytest tests/test_house_service.py
       
-      - name: Change Back DB HOST
+      - name: Delete Test Cloud Run Instance
         if: always()
         run: |
-          gcloud run services delete lease-service-test --region=us-central1 --quiet
+          gcloud run services delete house-service-test --region=us-central1 --quiet
 
       - name: Terraform Destroy
         if: always()
