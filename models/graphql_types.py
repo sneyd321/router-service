@@ -357,19 +357,6 @@ class Lease:
         self.documentName = kwargs.get("documentName")
         self.documentState = kwargs.get("documentState")
 
-    def to_json(self):
-        return {
-            "landlordInfo": self.landlordInfo,
-            "landlordAddress": self.landlordAddress,
-            "rentalAddress": self.rentalAddress,
-            "rent": self.rent,
-            "tenancyTerms": self.tenancyTerms,
-            "services": self.services,
-            "utilities": self.utilities,
-            "rentDiscounts": self.rentDiscounts,
-            "rentDeposits": self.rentDeposits,
-            "additionalTerms": self.additionalTerms
-        }
 
     
 
