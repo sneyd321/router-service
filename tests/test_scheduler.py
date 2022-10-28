@@ -49,8 +49,10 @@ async def test_Router_schedules_add_tenant_email_upload_successfully():
             "firstName": "Timmy11",
             "lastName": "Tenant",
             "email": "a@s.com",
-            "password": "aaaaaa",
             "tenantState": "Not Approved",
+            "tenantPosition": 1,
+            "houseId": 1,
+            "deviceId": ""
         })
         monad = await repository.schedule_add_tenant_email("ADASDS", "FirebaseID", "URL", tenant)
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}

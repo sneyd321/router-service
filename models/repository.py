@@ -111,8 +111,9 @@ class SchedulerRepository(Repository):
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def schedule_maintenance_ticket_upload(self, houseKey, firebaseId, maintenanceTicket, image):
+    async def schedule_maintenance_ticket_upload(self, session, houseKey, firebaseId, maintenanceTicket, image):
         request = Request(self.hostname, "/MaintenanceTicket")
+        request.set_session(session)
         return await self.post(request, **{
             "firebaseId": firebaseId,
             "imageURL": maintenanceTicket.imageURL,
@@ -125,15 +126,17 @@ class SchedulerRepository(Repository):
         })
 
         
-    async def schedule_lease(self, firebaseId, lease):
+    async def schedule_lease(self, session, request, firebaseId, lease):
         request = Request(self.hostname, "/Lease/Ontario")
+        request.set_session(session)
         return await self.post(request **{
             "firebaseId": firebaseId,
-            "lease": lease.to_json()
+            "lease": lease.__dict__()
         })
         
-    async def schedule_add_tenant_email(self, houseKey, firebaseId, documentURL, tenant):
+    async def schedule_add_tenant_email(self, session, houseKey, firebaseId, documentURL, tenant):
         request = Request(self.hostname, f"/AddTenantEmail")
+        request.set_session(session)
         return await self.post(request, **{
             "firstName": tenant.firstName,
             "lastName": tenant.lastName,
@@ -143,8 +146,9 @@ class SchedulerRepository(Repository):
             "firebaseId": firebaseId,
         })
     
-    async def schedule_sign_lease(self, tenant, firebaseId, documentURL, signature):
+    async def schedule_sign_lease(self, session, tenant, firebaseId, documentURL, signature):
         request = Request(self.hostname, "/SignLease")
+        request.set_session(session)
         return await self.post(request, **{
             "firstName": tenant.firstName,
             "lastName": tenant.lastName,
