@@ -8,7 +8,7 @@ cloudRun = CloudRun()
 #cloudRun.discover_dev()
 cloudRun.discover()
 
-repository = TenantRepository(cloudRun)
+repository = TenantRepository(cloudRun.get_tenant_test_hostname())
 
 async def test_Router_insert_tenant_returns_successfully():
     async with aiohttp.ClientSession() as session:

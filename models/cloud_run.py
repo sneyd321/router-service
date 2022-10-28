@@ -27,7 +27,6 @@ class CloudRun:
     }
 
     
-
     def get_service(self, name):
         try:
             return self.services[name]
@@ -55,10 +54,19 @@ class CloudRun:
     def get_scheduler_hostname(self):
         return self.get_service("scheduler")
 
+    def get_scheduler_test_hostname(self):
+        return self.get_service("scheduler-test")
+
     def get_tenant_hostname(self):
         return self.get_service("tenant-service")
 
+    def get_tenant_test_hostname(self):
+        return self.get_service("tenant-service-test")
+
     def get_landlord_hostname(self):
         return self.get_service("landlord-service")
+
+    def get_landlord_test_hostname(self):
+        return self.get_service("landlord-service-test")
 
 

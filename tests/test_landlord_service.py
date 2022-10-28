@@ -8,7 +8,7 @@ import aiohttp, uuid
 cloudRun = CloudRun()
 #cloudRun.discover_dev()
 cloudRun.discover()
-repository = LandlordRepository(cloudRun)
+repository = LandlordRepository(cloudRun.get_landlord_test_hostname())
 
 async def test_Router_insert_landlord_returns_successfully():
     async with aiohttp.ClientSession() as session:

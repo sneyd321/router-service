@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Checkout Maintenance Ticket Service
+      - name: Checkout House Service
         uses: actions/checkout@v3
         with:
           repository: sneyd321/house-service-v2
