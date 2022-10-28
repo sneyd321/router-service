@@ -1,7 +1,7 @@
 from models.repository import SchedulerRepository
 from models.request import Request
 from models.cloud_run import CloudRun
-from models.graphql_types import MaintenanceTickett, Lease, Tenant
+from models.graphql_types import MaintenanceTicket, Lease, Tenant
 
 import json, aiohttp
 
