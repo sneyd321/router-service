@@ -1,5 +1,5 @@
-name: Run Lease Tests
-on: [push]
+name: Run Maintenance Ticket Tests
+on: [workflow_dispatch]
 
 jobs:
   build:

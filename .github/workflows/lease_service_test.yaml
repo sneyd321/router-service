@@ -1,4 +1,4 @@
-name: Run Maintenance Ticket Tests
+name: Run Lease Tests
 on: [workflow_dispatch]
 
 jobs:
