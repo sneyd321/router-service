@@ -64,8 +64,8 @@ class LandlordRepository(Repository):
 
 class HouseRepository(Repository):
 
-    def __init__(self, cloudRun):
-        Repository.__init__(self, cloudRun)
+    def __init__(self, hostname):
+        self.hostname = hostname
 
     async def create_house(self, session, landlordId):
         request = Request(self.hostname, f"/House")
