@@ -49,6 +49,9 @@ class CloudRun:
     def get_house_hostname(self):
         return self.get_service("house-service")
 
+    def get_house_test_hostname(self):
+        return self.get_service("house-service-test")
+
     def get_scheduler_hostname(self):
         return self.get_service("scheduler")
 
