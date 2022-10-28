@@ -131,7 +131,7 @@ class SchedulerRepository(Repository):
         request.set_session(session)
         return await self.post(request **{
             "firebaseId": firebaseId,
-            "lease": lease.__dict__()
+            "lease": lease.to_json()
         })
         
     async def schedule_add_tenant_email(self, session, houseKey, firebaseId, documentURL, tenant):
@@ -142,7 +142,7 @@ class SchedulerRepository(Repository):
             "lastName": tenant.lastName,
             "email": tenant.email,
             "houseKey": houseKey,
-            "documentURL": lease.documentURL,
+            "documentURL": documentURL,
             "firebaseId": firebaseId,
         })
     
