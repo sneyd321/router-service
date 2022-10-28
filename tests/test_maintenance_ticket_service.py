@@ -5,10 +5,10 @@ from models.graphql_inputs import MaintenanceTicketInput
 import aiohttp
 
 cloudRun = CloudRun()
-#cloudRun.discover_dev()
-cloudRun.discover()
+cloudRun.discover_dev()
+#cloudRun.discover()
 
-maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenance_ticket_test_hostname())
+maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenance_ticket_hostname())
 
 async def test_Router_insert_maintenance_ticket_successfully():
     async with aiohttp.ClientSession() as session:

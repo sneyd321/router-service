@@ -94,7 +94,7 @@ jobs:
       - name: Delete Test Cloud Run Instance
         if: always()
         run: |
-          gcloud run services delete test-lease-service --region=us-central1 --quiet
+          gcloud run services delete maintenance-ticket-service-test --region=us-central1 --quiet
 
       - name: Terraform Destroy
         if: always()
