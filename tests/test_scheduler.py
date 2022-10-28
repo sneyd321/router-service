@@ -40,8 +40,8 @@ async def test_Router_schedules_generate_lease_upload_successfully():
     async with aiohttp.ClientSession() as session:
         with open(r"./tests/lease_test.json", mode="r") as lease_json:
             leaseData = json.load(lease_json)
-            lease = Lease(**leaseData)
-        monad = await repository.schedule_lease(session, "FirebaseID", lease)
+ 
+        monad = await repository.schedule_lease(session, "FirebaseID", leaseData)
         assert monad.get_param_at(0) == {"status": "Job scheduled successfully"}
 
 async def test_Router_schedules_add_tenant_email_upload_successfully():
