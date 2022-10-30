@@ -1,0 +1,33 @@
+name: Deploy to cloud run
+on: [workflow_dispatch]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          workload_identity_provider: 'projects/959426188245/locations/global/workloadIdentityPools/github-action-pool-1/providers/github-action-provider-1'
+          service_account: 'artifact-repository-access@roomr-222721.iam.gserviceaccount.com'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          docker build -t us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router .
+          docker push us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router
+      - name: Deploy to Cloud run
+        run: |
+          gcloud run deploy router --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/cloud_run_service_account:1 --vpc-connector=vpc-connector-2
+          
+    
+          
