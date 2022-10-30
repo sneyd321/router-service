@@ -94,7 +94,7 @@ class MaintenanceTicketRepository(Repository):
         request.set_session(session)
         return await self.get(request)
 
-    async def get_maintenance_tickets_by_house_key(self, session, houseId, maintenanceTicketId):
+    async def get_maintenance_ticket_by_id(self, session, houseId, maintenanceTicketId):
         request = Request(self.hostname, f"/House/{houseId}/MaintenanceTicket?query={maintenanceTicketId}")
         request.set_session(session)
         return await self.get(request)

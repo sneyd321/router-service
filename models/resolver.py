@@ -147,7 +147,7 @@ async def add_tenant(houseKey: str, tenant: TenantInput) -> Tenant:
     return Tenant(**tenant.to_json(), houseId=0, tenantPosition=0)
 
 
-async def create_tenant_account(houseKey: str, tenant: CreateTenantAccountInput, signature: str, registrationToken: str, documentURL: str) -> Tenant:
+async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: str, registrationToken: str, documentURL: str) -> Tenant:
     request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
     houseRepository = Repository(request)
     monad = await houseRepository.get()
@@ -342,12 +342,7 @@ async def udpate_additional_terms(id: strawberry.ID, inputData: List[AdditionalT
     return [AdditionalTerm(**additionalTerm) for additionalTerm in additionalTerms]
 
 
-async def udpate_tenant_names(id: strawberry.ID, inputData: List[TenantNameInput]) -> List[TenantName]:
-    tenantNames = [tenantName.to_json() for tenantName in inputData]
-    monad = await leaseRepository.update(id, tenantNames, "TenantNames")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return [TenantName(**tenantName) for tenantName in tenantNames]
+
 
 
 

@@ -70,6 +70,6 @@ async def test_Router_get_maintenance_ticket_successfully():
             })
         monad = await maintenanceTicketRepository.create_maintenance_ticket(session, 1, maintenanceTicket)
         maintenanceTicketId = monad.get_param_at(0)["id"]
-        monad = await maintenanceTicketRepository.get_maintenance_tickets_by_house_key(session, 1, maintenanceTicketId)
+        monad = await maintenanceTicketRepository.get_maintenance_ticket_by_id(session, 1, maintenanceTicketId)
         assert isinstance(monad.get_param_at(0), dict)
 
