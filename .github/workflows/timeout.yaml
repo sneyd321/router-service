@@ -1,4 +1,4 @@
-name: Run Repository Tests
+name: Run Outage Tests
 on: [workflow_dispatch]
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         run: |
           gcloud iam service-accounts keys create ./models/static/ServiceAccount.json --iam-account=cloud-run-admin@roomr-222721.iam.gserviceaccount.com
           docker build -t sneyd321/router .
-          docker compose run -ePORT=8081 router pytest tests/test_repository.py
+          docker compose run -ePORT=8081 router pytest tests/test_timeout.py
      
       - name: Delete service account key
         if: always()
