@@ -169,11 +169,10 @@ class LeaseRepository(Repository):
     async def create_lease(self, session, houseId, lease):
         request = Request(self.hostname, f"/House/{houseId}/Lease")
         request.set_session(session)
-        return await self.post(request, **lease.__dict__)
+        return await self.post(request, **lease)
 
-    async def get_lease_by_houseIds(self, session, houseIds):
-        houseIdsAsString = [str(item) for item in houseIds]
-        request = Request(self.hostname, f"/Lease?houses={','.join(houseIdsAsString)}")
+    async def get_lease_by_houseId(self, session, houseId):
+        request = Request(self.hostname, f"/Lease/{houseId}")
         request.set_session(session)
         return await self.get(request)
 
@@ -181,51 +180,52 @@ class LeaseRepository(Repository):
     async def update_landlord_info(self, session, leaseId, landlordInfo):
         request = Request(self.hostname, f"/Lease/{leaseId}/LandlordInfo")
         request.set_session(session)
-        return await self.put(request, **landlordInfo.__dict__)
+        return await self.put(request, **landlordInfo)
 
 
     async def update_landlord_address(self, session, leaseId, landlordAddress):
         request = Request(self.hostname, f"/Lease/{leaseId}/LandlordAddress")
         request.set_session(session)
-        return await self.put(request, **landlordAddress.__dict__)
+        return await self.put(request, **landlordAddress)
 
     async def update_rental_address(self, session, leaseId, rentalAddress):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentalAddress")
         request.set_session(session)
-        return await self.put(request, **rentalAddress.__dict__)
+        return await self.put(request, **rentalAddress)
     
     async def update_rent(self, session, leaseId, rent):
         request = Request(self.hostname, f"/Lease/{leaseId}/Rent")
         request.set_session(session)
-        return await self.put(request, **rent.__dict__)
+        return await self.put(request, **rent)
     
     async def update_tenancy_terms(self, session, leaseId, tenancyTerms):
         request = Request(self.hostname, f"/Lease/{leaseId}/TenancyTerms")
         request.set_session(session)
-        return await self.put(request, **tenancyTerms.__dict__)
+        return await self.put(request, **tenancyTerms)
 
     async def update_services(self, session, leaseId, services):
         request = Request(self.hostname, f"/Lease/{leaseId}/Services")
         request.set_session(session)
-        return await self.put_list(request, *[service.__dict__ for service in services])
+        return await self.put_list(request, *[service.to_json() for service in services])
 
-    async def update_utilities(self, session, leaseId, utililties):
+    async def update_utilities(self, session, leaseId, utilities):
         request = Request(self.hostname, f"/Lease/{leaseId}/Utilities")
         request.set_session(session)
-        return await self.put_list(request, *[utility.__dict__ for utility in utililties])
+        return await self.put_list(request, *[utility.to_json() for utility in utilities])
 
     async def udpate_rent_discounts(self, session, leaseId, rentDiscounts):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentDiscounts")
         request.set_session(session)
-        return await self.put_list(request, *[rentDiscount.__dict__ for rentDiscount in rentDiscounts])
+        return await self.put_list(request, *[rentDiscount.to_json() for rentDiscount in rentDiscounts])
 
-    async def udpate_rent_deposits(self, session, leaseId, rentDeposits):
+    async def update_rent_deposits(self, session, leaseId, rentDeposits):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentDeposits")
         request.set_session(session)
-        return await self.put_list(request, *[rentDeposit.__dict__ for rentDeposit in rentDeposits])
+        return await self.put_list(request, *[rentDeposit.to_json() for rentDeposit in rentDeposits])
 
-    async def udpate_additional_terms(self, session, leaseId, additionalTerms):
+    async def update_additional_terms(self, session, leaseId, additionalTerms):
         request = Request(self.hostname, f"/Lease/{leaseId}/AdditionalTerms")
         request.set_session(session)
-        return await self.put_list(request, *[additionalTerm.__dict__ for additionalTerm in additionalTerms])
+        print(additionalTerms)
+        return await self.put_list(request, *[additionalTerm.to_json() for additionalTerm in additionalTerms])
 

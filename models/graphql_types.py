@@ -348,11 +348,11 @@ class Lease:
         self.rentalAddress = RentalAddress(**kwargs.get("rentalAddress"))
         self.rent = Rent(**kwargs.get("rent"))
         self.tenancyTerms = TenancyTerms(**kwargs.get("tenancyTerms"))
-        self.services = [Service(**json) for json in kwargs.get("services")]
-        self.utilities = [Utility(**json) for json in kwargs.get("utilities")]
-        self.rentDiscounts = [RentDiscount(**json) for json in kwargs.get("rentDiscounts")]
-        self.rentDeposits = [RentDeposit(**json) for json in kwargs.get("rentDeposits")]
-        self.additionalTerms = [AdditionalTerm(**json) for json in kwargs.get("additionalTerms")]
+        self.services = [Service(**service) for service in kwargs.get("services")]
+        self.utilities = [Utility(**utility) for utility in kwargs.get("utilities")]
+        self.rentDiscounts = [RentDiscount(**rentDiscount) for rentDiscount in kwargs.get("rentDiscounts")]
+        self.rentDeposits = [RentDeposit(**rentDeposit) for rentDeposit in kwargs.get("rentDeposits")]
+        self.additionalTerms = [AdditionalTerm(**additionalTerm) for additionalTerm in kwargs.get("additionalTerms")]
         self.documentURL = kwargs.get("documentURL")
         self.documentName = kwargs.get("documentName")
         self.documentState = kwargs.get("documentState")

@@ -4,38 +4,39 @@ from strawberry.file_uploads import Upload
 
 from models.cloud_run import CloudRun
 from models.monad import RequestMaybeMonad
-from models.repository import Repository
+from models.repository import MaintenanceTicketRepository, HouseRepository, LeaseRepository, SchedulerRepository
 from models.request import Request
 from models.graphql_inputs import *
 from models.graphql_types import *
 
-import json, itertools, asyncio, base64
+import json, itertools, asyncio, base64, aiohttp
 
 cloudRun = CloudRun()
 cloudRun.discover_dev()
 
-async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
-    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/House/{houseId}/MaintenanceTicket")
-    maintenanceTicketRepository = Repository(request)
-    monad = await maintenanceTicketRepository.get()
-    if monad.has_errors():
-        raise Exception(monad.error_status["reason"])
-    return MaintenanceTicket(**monad.get_param_at(0))
+maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenance_ticket_hostname())
+houseRepository = HouseRepository(cloudRun.get_house_hostname())
+leaseRepository = LeaseRepository(cloudRun.get_lease_hostname())
+schedulerRepository = SchedulerRepository(cloudRun.get_scheduler_hostname())
 
-async def get_maintenance_tickets_by_house_key(houseKey: str) -> List[MaintenanceTicket]:
-    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
-    houseRepository = Repository(request)
-    monad = await houseRepository.get()
-    if monad.has_errors():
-        raise Exception(monad.errors["reason"])
-    house = NewHouse(**monad.get_param_at(0))
-    
-    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/House/{house.id}/MaintenanceTicket")
-    maintenanceTicketRepository = Repository(request)
-    monad = await maintenanceTicketRepository.get()
-    if monad.has_errors():
-        raise Exception(monad.error_status["reason"])
-    return MaintenanceTicket(**monad.get_param_at(0))
+async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
+    async with aiohttp.ClientSession() as session:
+        monad = await maintenanceTicketRepository.get_maintenance_tickets(session, houseId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [MaintenanceTicket(**data) for data in monad.get_param_at(0)]
+
+async def get_maintenance_ticket_by_id(houseKey: str, maintenanceTicketId: int) -> MaintenanceTicket:
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.get_house_by_house_key(session, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        house = NewHouse(**monad.get_param_at(0))
+        
+        monad = await maintenanceTicketRepository.get_maintenance_ticket_by_id(session, house.id, maintenanceTicketId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return MaintenanceTicket(**monad.get_param_at(0))
 
 async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput, image: str) -> MaintenanceTicket:
     request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
@@ -71,33 +72,55 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
 
 
 
-async def add_house(landlordId: int) -> NewHouse:
-    request = Request(cloudRun.get_house_hostname(), f"/House")
-    repository = Repository(request)
-    monad = await repository.insert(landlordId=landlordId)
-    if monad.has_errors():
-        raise Exception(monad.error_status["reason"])
-    return NewHouse(**monad.get_param_at(0))
+async def add_house(landlordId: int, lease: LeaseInput) -> House:
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.create_house(session, landlordId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+
+        house = House(**monad.get_param_at(0), lease=None)
+        monad = await leaseRepository.create_lease(session, house.id, lease)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        print(monad.get_param_at(0))
+        house.lease = Lease(**monad.get_param_at(0))
+        """
+        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, lease.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        """
+        return house
 
     
 
 
-async def get_houses(landlordId: int) -> List[NewHouse]:
-    request = Request(hostname, f"/Landlord/{landlordId}/House")
-    repository = Repository(request)
-    monad = await houseRepository.get()
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    return NewHouse(**monad.data)
+async def get_houses(landlordId: int) -> List[House]:
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.get_houses(session, landlordId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
 
-async def get_house_by_house_key(houseKey: str) -> NewHouse:
-    request = Request(hostname, f"/House/{houseKey}")
-    repository = Repository(request)
-    monad = await repository.get()
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    return NewHouse(**monad.get_param_at(0))
+        houses = []
+        for house in monad.get_param_at(0):
+            monad = await leaseRepository.get_lease_by_houseId(session, house["id"])
+            if monad.has_errors():
+                raise Exception(monad.error_status["reason"])
+            houses.append(House(**house, lease=Lease(**monad.get_param_at(0))))
+        return houses
+        
+        
+async def get_house_by_house_key(houseKey: str) -> House:
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.get_house_by_house_key(session, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
 
+        house = monad.get_param_at(0)
+        monad = await leaseRepository.get_lease_by_houseId(session, house["id"])
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return House(**house, lease=Lease(**monad.get_param_at(0)))
+   
 
 
 
@@ -239,107 +262,86 @@ async def get_device_ids(houseKey: str) -> DeviceId:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-async def get_lease(houseId: strawberry.ID) -> Lease:
-    monad = await leaseRepository.get_lease_by_houseIds([houseId])
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    leaseResponse = monad.data[0]
-    return Lease(**leaseResponse)
+async def get_lease(houseId: int) -> Lease:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.get_lease_by_houseId(session, houseId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return monad.get_param_at(0).to_json()
 
     
-async def update_landlord_info(id: strawberry.ID, inputData: LandlordInfoInput) -> LandlordInfo:
-    monad = await leaseRepository.update(id, inputData.to_json(), "LandlordInfo")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    print(inputData.to_json())
-    return LandlordInfo(**inputData.to_json())
 
-async def update_landlord_address(id: strawberry.ID, inputData: LandlordAddressInput) -> LandlordAddress:
-    monad = await leaseRepository.update(id, inputData.to_json(), "LandlordAddress")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return LandlordAddress(**inputData.to_json())
 
-async def update_rental_address(id: strawberry.ID, inputData: RentalAddressInput) -> RentalAddress:
-    monad = await leaseRepository.update(id, inputData.to_json(), "RentalAddress")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return RentalAddress(**inputData.to_json())
+async def update_landlord_info(leaseId: int, landlordInfo: LandlordInfoInput) -> LandlordInfo:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_landlord_info(session, leaseId, landlordInfo.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return LandlordInfo(**monad.get_param_at(0))
 
-async def update_rent(id: strawberry.ID, inputData: RentInput) -> Rent:
-    monad = await leaseRepository.update(id, inputData.to_json(), "Rent")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return Rent(**inputData.to_json())
 
-async def update_tenancy_terms(id: strawberry.ID, inputData: TenancyTermsInput) -> TenancyTerms:
-    monad = await leaseRepository.update(id, inputData.to_json(), "TenancyTerms")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return TenancyTerms(**inputData.to_json())
+async def update_landlord_address(leaseId: int, landlordAddress: LandlordAddressInput) -> LandlordAddress:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_landlord_address(session, leaseId, landlordAddress.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return LandlordAddress(**monad.get_param_at(0))
 
-async def update_services(id: strawberry.ID, inputData: List[ServiceInput]) -> List[Service]:
-    services = [service.to_json() for service in inputData]
-    monad = await leaseRepository.update(id, services, "Services")
-    if monad.errors:
+async def update_rental_address(leaseId: int, rentalAddress: RentalAddressInput) -> RentalAddress:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_rental_address(session, leaseId, rentalAddress.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return RentalAddress(**monad.get_param_at(0))
 
-        raise Exception(monad.errors["Error"])
-    return [Service(**service) for service in services]
+async def update_rent(leaseId: int, rent: RentInput) -> Rent:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_rent(session, leaseId, rent.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Rent(**monad.get_param_at(0))
 
-async def update_utilities(id: strawberry.ID, inputData: List[UtilityInput]) -> List[Utility]:
-    utilities = [utililty.to_json() for utililty in inputData]
-    monad = await leaseRepository.update(id, utilities, "Utilities")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return [Utility(**utility) for utility in utilities]
+async def update_tenancy_terms(leaseId: int, tenancyTerms: TenancyTermsInput) -> TenancyTerms:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_tenancy_terms(session, leaseId, tenancyTerms.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return TenancyTerms(**monad.get_param_at(0))
 
-async def udpate_rent_discounts(id: strawberry.ID, inputData: List[RentDiscountInput]) -> List[RentDiscount]:
-    rentDiscounts = [rentDiscount.to_json() for rentDiscount in inputData]
-    monad = await leaseRepository.update(id, rentDiscounts, "RentDiscounts")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return [RentDiscount(**rentDiscount) for rentDiscount in rentDiscounts]
+async def update_services(leaseId: int, services: List[ServiceInput]) -> List[Service]:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_services(session, leaseId, services)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [Service(**service) for service in monad.get_param_at(0)]
 
-async def udpate_rent_deposits(id: strawberry.ID, inputData: List[RentDepositInput]) -> List[RentDeposit]:
-    rentDeposits = [rentDeposit.to_json() for rentDeposit in inputData]
-    monad = await leaseRepository.update(id, rentDeposits, "RentDeposits")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return [RentDeposit(**rentDeposit) for rentDeposit in rentDeposits]
+async def update_utilities(leaseId: int, utilities: List[UtilityInput]) -> List[Utility]:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_utilities(session, leaseId, utilities)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [Utility(**utility) for utility in monad.get_param_at(0)]
 
-async def udpate_additional_terms(id: strawberry.ID, inputData: List[AdditionalTermInput]) -> List[AdditionalTerm]:
-    additionalTerms = [additionalTerm.to_json() for additionalTerm in inputData]
-    monad = await leaseRepository.update(id, additionalTerms, "AdditionalTerms")
-    if monad.errors:
-        raise Exception(monad.errors["Error"])
-    return [AdditionalTerm(**additionalTerm) for additionalTerm in additionalTerms]
+async def update_rent_discounts(leaseId: int, rentDiscounts: List[RentDiscountInput]) -> List[RentDiscount]:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.udpate_rent_discounts(session, leaseId, rentDiscounts)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [RentDiscount(**rentDiscount) for rentDiscount in monad.get_param_at(0)]
+
+async def update_rent_deposits(leaseId: int, rentDeposits: List[RentDepositInput]) -> List[RentDeposit]:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_rent_deposits(session, leaseId, rentDeposits)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [RentDeposit(**rentDeposit) for rentDeposit in monad.get_param_at(0)]
+
+async def update_additional_terms(leaseId: int, additionalTerms: List[AdditionalTermInput]) -> List[AdditionalTerm]:
+    async with aiohttp.ClientSession() as session:
+        monad = await leaseRepository.update_additional_terms(session, leaseId, additionalTerms)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [AdditionalTerm(**additionalTerm) for additionalTerm in monad.get_param_at(0)]
 
 
 
