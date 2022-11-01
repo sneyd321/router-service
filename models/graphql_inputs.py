@@ -374,6 +374,14 @@ class LoginTenantInput:
     houseKey: str
     deviceId: str
 
+    def to_json(self):
+        return {
+            'email': self.email, 
+            'password': self.password, 
+            "houseKey": self.houseKey,
+            "deviceId": self.deviceId
+        }
+
 @strawberry.input
 class LandlordInput:
     firstName: str
@@ -396,6 +404,12 @@ class LoginLandlordInput:
     password: str
     deviceId: str
 
+    def to_json(self):
+        return {
+            'email': self.email, 
+            'password': self.password, 
+            "deviceId": self.deviceId
+        }
 
 
 

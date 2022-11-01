@@ -28,12 +28,12 @@ class TenantRepository(Repository):
     async def create_tenant(self, session, houseId, tenant):
         request = Request(self.hostname, f"/Tenant")
         request.set_session(session)
-        return await self.post(request, houseId=houseId, **tenant.__dict__)
+        return await self.post(request, houseId=houseId, **tenant)
         
     async def login(self, session, houseId, login):
         request = Request(self.hostname, f"/Login")
         request.set_session(session)
-        return await self.post(request, houseId=houseId, **login.__dict__)
+        return await self.post(request, houseId=houseId, **login)
 
     async def get_tenants_by_house_id(self, session, houseId):
         request = Request(self.hostname, f"/House/{houseId}/Tenant")
@@ -138,9 +138,9 @@ class SchedulerRepository(Repository):
         request = Request(self.hostname, f"/AddTenantEmail")
         request.set_session(session)
         return await self.post(request, **{
-            "firstName": tenant.firstName,
-            "lastName": tenant.lastName,
-            "email": tenant.email,
+            "firstName": tenant["firstName"],
+            "lastName": tenant["lastName"],
+            "email": tenant["email"],
             "houseKey": houseKey,
             "documentURL": documentURL,
             "firebaseId": firebaseId,
