@@ -39,36 +39,23 @@ async def get_maintenance_ticket_by_id(houseKey: str, maintenanceTicketId: int) 
         return MaintenanceTicket(**monad.get_param_at(0))
 
 async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTicketInput, image: str) -> MaintenanceTicket:
-    request = Request(cloudRun.get_house_hostname(), f"/House/{houseKey}")
-    houseRepository = Repository(request)
-    monad = await houseRepository.get()
-    if monad.has_errors():
-        raise Exception(monad.errors["reason"])
-    house = NewHouse(**monad.get_param_at(0))
-
-    request = Request(cloudRun.get_maintenance_ticket_hostname(), f"/MaintenanceTicket")
-    maintenanceTicketRepository = Repository(request)
-    maintenanceTicket.houseId = house.id
-    monad = await maintenanceTicketRepository.insert(**maintenanceTicket.to_json())
-    if monad.has_errors():
-        raise Exception(monad.error_status["reason"])
-    maintenanceTicket = MaintenanceTicket(**monad.get_param_at(0))
-
-    request = Request(cloudRun.get_scheduler_hostname(), "/MaintenanceTicket")
-    repository = Repository(request)
-    monad = await schedulerRepository.insert(**{
-        "firebaseId": maintenanceTicket.firebaseId,
-        "imageURL": maintenanceTicket.imageURL,
-        "houseKey": houseKey,
-        "maintenanceTicketId": maintenanceTicket.id,
-        "description": maintenanceTicket.description.descriptionText,
-        "firstName": maintenanceTicket.sender.firstName,
-        "lastName": maintenanceTicket.sender.lastName,
-        "image": image
-    })
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    return maintenanceTicket
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.get_house_by_house_key(session, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        
+        house = NewHouse(**monad.get_param_at(0))
+        monad = await maintenanceTicketRepository.create_maintenance_ticket(session, house.id, maintenanceTicket.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        
+        returnedMaintenanceTicket = MaintenanceTicket(**monad.get_param_at(0))
+        """
+        monad = await schedulerRepository.schedule_maintenance_ticket_upload(session, houseKey, house.firebaseId, returnedMaintenanceTicket, image)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        """
+        return returnedMaintenanceTicket
 
 
 

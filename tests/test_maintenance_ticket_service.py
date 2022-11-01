@@ -12,7 +12,7 @@ maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenan
 
 async def test_Router_insert_maintenance_ticket_successfully():
     async with aiohttp.ClientSession() as session:
-        maintenanceTicket = MaintenanceTicketInput(**{
+        maintenanceTicket = {
             "houseId": 3,
             "description": {
                 "descriptionText": "fdagfdasfsdfasdfa"
@@ -25,7 +25,7 @@ async def test_Router_insert_maintenance_ticket_successfully():
                 "lastName": "Sneyd",
                 "email": "a@s.com"
             }
-        })
+        }
         monad = await maintenanceTicketRepository.create_maintenance_ticket(session, 1, maintenanceTicket)
         assert monad.get_param_at(0) != None
 
@@ -33,7 +33,7 @@ async def test_Router_insert_maintenance_ticket_successfully():
 
 async def test_Router_get_maintenance_tickets_successfully():
     async with aiohttp.ClientSession() as session:
-        maintenanceTicket = MaintenanceTicketInput(**{
+        maintenanceTicket = {
                 "houseId": 3,
                 "description": {
                     "descriptionText": "fdagfdasfsdfasdfa"
@@ -46,7 +46,7 @@ async def test_Router_get_maintenance_tickets_successfully():
                     "lastName": "Sneyd",
                     "email": "a@s.com"
                 }
-            })
+            }
         monad = await maintenanceTicketRepository.create_maintenance_ticket(session, 1, maintenanceTicket)
         monad = await maintenanceTicketRepository.get_maintenance_tickets(session, 1)
         assert len(monad.get_param_at(0)) > 1
@@ -54,7 +54,7 @@ async def test_Router_get_maintenance_tickets_successfully():
 
 async def test_Router_get_maintenance_ticket_successfully():
     async with aiohttp.ClientSession() as session:
-        maintenanceTicket = MaintenanceTicketInput(**{
+        maintenanceTicket = {
                 "houseId": 3,
                 "description": {
                     "descriptionText": "fdagfdasfsdfasdfa"
@@ -67,7 +67,7 @@ async def test_Router_get_maintenance_ticket_successfully():
                     "lastName": "Sneyd",
                     "email": "a@s.com"
                 }
-            })
+            }
         monad = await maintenanceTicketRepository.create_maintenance_ticket(session, 1, maintenanceTicket)
         maintenanceTicketId = monad.get_param_at(0)["id"]
         monad = await maintenanceTicketRepository.get_maintenance_ticket_by_id(session, 1, maintenanceTicketId)

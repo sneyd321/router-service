@@ -102,8 +102,8 @@ class MaintenanceTicketRepository(Repository):
     async def create_maintenance_ticket(self, session, houseId, maintenanceTicket):
         request = Request(self.hostname, f"/MaintenanceTicket")
         request.set_session(session)
-        maintenanceTicket.houseId = houseId
-        return await self.post(request, **maintenanceTicket.__dict__)
+        maintenanceTicket["houseId"] = houseId
+        return await self.post(request, **maintenanceTicket)
         
 
 class SchedulerRepository(Repository):
