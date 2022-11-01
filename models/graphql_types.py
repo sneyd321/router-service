@@ -394,6 +394,7 @@ class Tenant:
 
 @strawberry.type
 class Landlord:
+    id: int
     firstName: str
     lastName: str
     email: str

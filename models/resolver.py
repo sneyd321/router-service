@@ -19,6 +19,7 @@ houseRepository = HouseRepository(cloudRun.get_house_hostname())
 leaseRepository = LeaseRepository(cloudRun.get_lease_hostname())
 schedulerRepository = SchedulerRepository(cloudRun.get_scheduler_hostname())
 tenantRepository = TenantRepository(cloudRun.get_tenant_hostname())
+landlordRepository = LandlordRepository(cloudRun.get_landlord_hostname())
 
 async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
     async with aiohttp.ClientSession() as session:
@@ -176,26 +177,24 @@ async def tenant_login(login: LoginTenantInput) -> Tenant:
 
         monad = await tenantRepository.login(session, house.id, login.to_json())
         if monad.has_errors():
-            raise Exception(monad.errors["reason"])
+            raise Exception(monad.error_status["reason"])
         print(monad.get_param_at(0))
         return Tenant(**monad.get_param_at(0))
 
 
 async def create_landlord_account(landlord: LandlordInput) -> Landlord:
-    request = Request(cloudRun.get_landlord_hostname(), "/Landlord")
-    landlordRepository = Repository(request)
-    monad = await landlordRepository.insert(**landlord.to_json())
-    if monad.has_errors():
-        raise Exception(monad.errors["reason"])
-    return Landlord(**monad.get_param_at(0))
+    async with aiohttp.ClientSession() as session:
+        monad = await landlordRepository.create_landlord(session, landlord.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Landlord(**monad.get_param_at(0))
     
 async def landlord_login(login: LoginLandlordInput) -> Landlord:
-    request = Request(cloudRun.get_landlord_hostname(), "/Login")
-    landlordRepository = Repository(request)
-    monad = await landlordRepository.insert(**login.to_json())
-    if monad.has_errors():
-        raise Exception(monad.errors["reason"])
-    return Landlord(**monad.get_param_at(0))
+    async with aiohttp.ClientSession() as session:
+        monad = await landlordRepository.login(session, login.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Landlord(**monad.get_param_at(0))
 
 
 

@@ -49,12 +49,12 @@ class LandlordRepository(Repository):
     async def create_landlord(self, session, landlord):
         request = Request(self.hostname, "/Landlord")
         request.set_session(session)
-        return await self.post(request, **landlord.__dict__)
+        return await self.post(request, **landlord)
 
     async def login(self, session, login):
         request = Request(self.hostname, "/Login")
         request.set_session(session)
-        return await self.post(request, **login.__dict__)
+        return await self.post(request, **login)
 
     async def get_landlord_by_id(self, session, landlordId):
         request = Request(self.hostname, f"/Landlord/{landlordId}")
