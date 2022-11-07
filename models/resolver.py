@@ -12,7 +12,8 @@ from models.graphql_types import *
 import json, itertools, asyncio, base64, aiohttp
 
 cloudRun = CloudRun()
-cloudRun.discover_dev()
+#cloudRun.discover_dev()
+cloudRun.discover()
 
 maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenance_ticket_hostname())
 houseRepository = HouseRepository(cloudRun.get_house_hostname())
