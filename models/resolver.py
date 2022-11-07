@@ -61,23 +61,21 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
 
 
 
-async def add_house(landlordId: int, lease: LeaseInput) -> House:
+async def add_house(landlordId: int, lease: LeaseInput, signature: str) -> House:
     async with aiohttp.ClientSession() as session:
         monad = await houseRepository.create_house(session, landlordId)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
         house = House(**monad.get_param_at(0), lease=None)
-        monad = await leaseRepository.create_lease(session, house.id, lease)
+        monad = await leaseRepository.create_lease(session, house.id, lease.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        print(monad.get_param_at(0))
+
         house.lease = Lease(**monad.get_param_at(0))
-        """
-        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, lease.to_json())
+        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, monad.get_param_at(0), signature)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        """
         return house
 
     
@@ -92,10 +90,11 @@ async def get_houses(landlordId: int) -> List[House]:
         houses = []
         for house in monad.get_param_at(0):
             monad = await leaseRepository.get_lease_by_houseId(session, house["id"])
-            if monad.error_status["status"] == 404:
-                continue
             if monad.has_errors():
-                raise Exception(monad.error_status["reason"])
+                if monad.error_status["status"] == 404:
+                    continue
+                else:
+                    raise Exception(monad.error_status["reason"])
             houses.append(House(**house, lease=Lease(**monad.get_param_at(0))))
         return houses
         
@@ -115,17 +114,17 @@ async def get_house_by_house_key(houseKey: str) -> House:
 
 
 
-async def schedule_lease(houseId: int, firebaseId: str) -> LeaseSchedule:
+async def schedule_lease(houseId: int, firebaseId: str, signature: str) -> Lease:
     async with aiohttp.ClientSession() as session:
         monad = await leaseRepository.get_lease_by_houseId(session, houseId)
         if monad.has_errors():
                 raise Exception(monad.error_status["reason"])
-   
-        monad = await schedulerRepository.schedule_lease(session, firebaseId, monad.get_param_at(0))
-        if monad.errors:
+        lease = monad.get_param_at(0)
+        monad = await schedulerRepository.schedule_lease(session, firebaseId, lease, signature)
+        if monad.has_errors():
             raise Exception(monad.error_status["reason"])
     
-        return LeaseSchedule(**monad.get_param_at(0))
+        return Lease(**lease)
  
 
         
@@ -140,12 +139,26 @@ async def add_tenant(houseKey: str, tenant: AddTenantEmailInput) -> Tenant:
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         house = House(**houseRepsonse, lease=Lease(**monad.get_param_at(0)))
-        """
+
+        monad = await tenantRepository.update_tenant_state(session, "Invite_Pending", tenant.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        updatedTenant = Tenant(**monad.get_param_at(0))
+        
         monad = await schedulerRepository.schedule_add_tenant_email(session, houseKey, house.firebaseId, house.lease.documentURL, tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.errors["reason"])
-        """
-        return Tenant(**tenant.to_json(), houseId=0, tenantPosition=0, deviceId="")
+      
+        return updatedTenant
+
+async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput) -> Tenant:
+    async with aiohttp.ClientSession() as session:
+        monad = await tenantRepository.create_tenant(session, houseId, tenant.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Tenant(**monad.get_param_at(0))
+
+
 
 
 async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: str, documentURL: str) -> Tenant:
@@ -182,6 +195,13 @@ async def tenant_login(login: LoginTenantInput) -> Tenant:
         return Tenant(**monad.get_param_at(0))
 
 
+async def get_tenants_by_house_id(houseId: int) -> List[Tenant]:
+    async with aiohttp.ClientSession() as session:
+        monad = await tenantRepository.get_tenants_by_house_id(session, houseId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return [Tenant(**json) for json in monad.get_param_at(0)]
+
 async def create_landlord_account(landlord: LandlordInput) -> Landlord:
     async with aiohttp.ClientSession() as session:
         monad = await landlordRepository.create_landlord(session, landlord.to_json())
@@ -199,27 +219,25 @@ async def landlord_login(login: LoginLandlordInput) -> Landlord:
 
 
 async def get_device_ids(houseKey: str) -> DeviceId:
-    monad = await houseRepository.get_house_by_house_key(houseKey)
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    house = NewHouse(**monad.data)
-    print(house)
-    monad = await tenantRepository.get_tenants_by_house_id(house.id)
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    tenants = map(lambda tenant: Tenant(**tenant), monad.data)
-    tenantDeviceIds = map(lambda tenant: tenant.deviceId, tenants)
-    tenantDeviceIds = filter(lambda tenant: tenant != None, tenantDeviceIds)
+    async with aiohttp.ClientSession() as session:
+        monad = await houseRepository.get_house_by_house_key(session, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        house = NewHouse(**monad.get_param_at(0))
     
-    monad = await landlordRepository.get_landlord_by_landlord_id(1)#house.landlordId)
-    if monad.errors:
-        raise Exception(monad.errors["reason"])
-    landlord = Landlord(**monad.data)
-    
-    deviceIds = list(tenantDeviceIds)
-    deviceIds.append(landlord.deviceId)
-
-    return DeviceId(deviceIds)
+        monad = await tenantRepository.get_tenants_by_house_id(session, house.id)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        tenants = map(lambda tenant: Tenant(**tenant), monad.get_param_at(0))
+        tenantDeviceIds = map(lambda tenant: tenant.deviceId, tenants)
+        tenantDeviceIds = filter(lambda tenant: tenant != None, tenantDeviceIds)
+        
+        monad = await landlordRepository.get_landlord_by_id(session, house.landlordId)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        landlord = Landlord(**monad.get_param_at(0))
+        
+        return DeviceId(landlordDeviceId=landlord.deviceId, tenantDeviceIds=list(tenantDeviceIds))
 
 
 

@@ -22,7 +22,7 @@ class CloudRun:
         'roomr-tenant': '', 
         'lease-service': 'http://localhost:8000', 
         'house-service': 'http://localhost:8082', 
-        'scheduler': 'http://localhost:8084', 
+        'scheduler': 'https://scheduler-s5xgw6tidq-uc.a.run.app', 
         'maintenance-ticket-service': 'http://localhost:8083'
     }
 

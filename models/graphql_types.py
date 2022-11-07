@@ -402,4 +402,7 @@ class Landlord:
 
 @strawberry.type
 class DeviceId:
-    deviceIds: List[str]
+    landlordDeviceId: str
+    tenantDeviceIds: List[str]
+
+    

@@ -34,7 +34,6 @@ class MaintenanceTicketSenderInput:
 
 @strawberry.input
 class MaintenanceTicketInput:
-    houseId: int
     description: DescriptionInput
     urgency: UrgencyInput
     sender: MaintenanceTicketSenderInput
@@ -336,7 +335,6 @@ class AddTenantEmailInput:
     firstName: str
     lastName: str
     email: str
-    tenantState: str
 
 
     def to_json(self):
@@ -344,7 +342,6 @@ class AddTenantEmailInput:
             "firstName": self.firstName,
             "lastName": self.lastName,
             "email": self.email,
-            "tenantState": self.tenantState,
         }
 
 
@@ -354,18 +351,28 @@ class TenantInput:
     lastName: str
     email: str
     password: str
-    tenantState: str
-
-
 
     def to_json(self):
         return {
             'firstName': self.firstName, 
             'lastName': self.lastName, 
             'email': self.email, 
-            'password': self.password, 
-            'tenantState': self.tenantState
+            'password': self.password
         }
+
+@strawberry.input
+class TempTenantInput:
+    firstName: str
+    lastName: str
+    email: str
+
+    def to_json(self):
+        return {
+            'firstName': self.firstName, 
+            'lastName': self.lastName, 
+            'email': self.email
+        }
+        
 
 @strawberry.input
 class LoginTenantInput:

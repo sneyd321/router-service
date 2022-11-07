@@ -39,6 +39,11 @@ class TenantRepository(Repository):
         request = Request(self.hostname, f"/House/{houseId}/Tenant")
         request.set_session(session)
         return await self.get(request)
+
+    async def update_tenant_state(self, session, tenantState, tenant):
+        request = Request(self.hostname, f"/Tenant/{tenantState}")
+        request.set_session(session)
+        return await self.post(request, **tenant)
        
 
 class LandlordRepository(Repository):
@@ -126,12 +131,13 @@ class SchedulerRepository(Repository):
         })
 
         
-    async def schedule_lease(self, session, firebaseId, lease):
+    async def schedule_lease(self, session, firebaseId, lease, signature):
         request = Request(self.hostname, "/Lease/Ontario")
         request.set_session(session)
         return await self.post(request, **{
             "firebaseId": firebaseId,
-            "lease": lease
+            "lease": lease,
+            "signature": signature
         })
         
     async def schedule_add_tenant_email(self, session, houseKey, firebaseId, documentURL, tenant):

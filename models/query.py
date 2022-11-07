@@ -10,5 +10,6 @@ class Query:
     getMaintenanceTicket: MaintenanceTicket = strawberry.field(resolver=get_maintenance_ticket_by_id)
     getHouses: List[House] = strawberry.field(resolver=get_houses)
     getHouse: House = strawberry.field(resolver=get_house_by_house_key)
-    #getDeviceIds: DeviceId = strawberry.field(resolver=get_device_ids)
+    getTenants: List[Tenant] = strawberry.field(resolver=get_tenants_by_house_id)
+    getDeviceIds: DeviceId = strawberry.field(resolver=get_device_ids)
     
