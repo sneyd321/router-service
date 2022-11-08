@@ -131,11 +131,12 @@ class SchedulerRepository(Repository):
         })
 
         
-    async def schedule_lease(self, session, firebaseId, lease, signature):
+    async def schedule_lease(self, session, firebaseId, houseKey, lease, signature):
         request = Request(self.hostname, "/Lease/Ontario")
         request.set_session(session)
         return await self.post(request, **{
             "firebaseId": firebaseId,
+            "houseKey": houseKey,
             "lease": lease,
             "signature": signature
         })

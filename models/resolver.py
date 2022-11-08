@@ -62,7 +62,7 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
 
 
 
-async def add_house(landlordId: int, lease: LeaseInput, signature: str) -> House:
+async def add_house(landlordId: int, lease: LeaseInput) -> House:
     async with aiohttp.ClientSession() as session:
         monad = await houseRepository.create_house(session, landlordId)
         if monad.has_errors():
@@ -74,7 +74,7 @@ async def add_house(landlordId: int, lease: LeaseInput, signature: str) -> House
             raise Exception(monad.error_status["reason"])
 
         house.lease = Lease(**monad.get_param_at(0))
-        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, monad.get_param_at(0), signature)
+        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, house.houseKey, monad.get_param_at(0), "")
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return house
@@ -115,16 +115,21 @@ async def get_house_by_house_key(houseKey: str) -> House:
 
 
 
-async def schedule_lease(houseId: int, firebaseId: str, signature: str) -> Lease:
+async def schedule_lease(houseKey: str, signature: str) -> Lease:
     async with aiohttp.ClientSession() as session:
-        monad = await leaseRepository.get_lease_by_houseId(session, houseId)
+        monad = await houseRepository.get_house_by_house_key(session, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        house = NewHouse(**monad.get_param_at(0))
+        
+        monad = await leaseRepository.get_lease_by_houseId(session, house.id)
         if monad.has_errors():
                 raise Exception(monad.error_status["reason"])
         lease = monad.get_param_at(0)
-        monad = await schedulerRepository.schedule_lease(session, firebaseId, lease, signature)
+
+        monad = await schedulerRepository.schedule_lease(session, house.firebaseId, houseKey, lease, signature)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-    
         return Lease(**lease)
  
 
