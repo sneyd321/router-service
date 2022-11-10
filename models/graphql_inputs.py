@@ -343,6 +343,7 @@ class AddTenantEmailInput:
             "firstName": self.firstName,
             "lastName": self.lastName,
             "email": self.email,
+            "password": self.password
         }
 
 
