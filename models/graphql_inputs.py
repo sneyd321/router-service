@@ -366,13 +366,15 @@ class TempTenantInput:
     firstName: str
     lastName: str
     email: str
+    passwod: str
 
 
     def to_json(self):
         return {
             'firstName': self.firstName, 
             'lastName': self.lastName, 
-            'email': self.email
+            'email': self.email,
+            "password": self.passwod
         }
         
 
