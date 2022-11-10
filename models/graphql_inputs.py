@@ -366,7 +366,7 @@ class TempTenantInput:
     firstName: str
     lastName: str
     email: str
-    passwod: str
+    password: str
 
 
     def to_json(self):
@@ -374,7 +374,7 @@ class TempTenantInput:
             'firstName': self.firstName, 
             'lastName': self.lastName, 
             'email': self.email,
-            "password": self.passwod
+            "password": self.password
         }
         
 
