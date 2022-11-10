@@ -28,7 +28,7 @@ class TenantRepository(Repository):
     async def create_tenant(self, session, houseId, tenant):
         request = Request(self.hostname, f"/Tenant")
         request.set_session(session)
-        return await self.post(request, houseId=houseId, password="", **tenant)
+        return await self.post(request, houseId=houseId, **tenant)
         
     async def login(self, session, houseId, login):
         request = Request(self.hostname, f"/Login")
