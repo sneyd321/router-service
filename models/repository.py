@@ -28,7 +28,7 @@ class TenantRepository(Repository):
     async def create_tenant(self, session, houseId, tenant):
         request = Request(self.hostname, f"/Tenant")
         request.set_session(session)
-        return await self.post(request, houseId=houseId, **tenant)
+        return await self.post(request, houseId=houseId, password="", **tenant)
         
     async def login(self, session, houseId, login):
         request = Request(self.hostname, f"/Login")
@@ -153,17 +153,18 @@ class SchedulerRepository(Repository):
             "firebaseId": firebaseId,
         })
     
-    async def schedule_sign_lease(self, session, tenant, firebaseId, documentURL, signature):
+    async def schedule_sign_lease(self, session, tenant, houseKey, firebaseId, documentURL, signature):
         request = Request(self.hostname, "/SignLease")
         request.set_session(session)
         return await self.post(request, **{
             "firstName": tenant.firstName,
             "lastName": tenant.lastName,
             "email": tenant.email,
+            "houseKey": houseKey,
             "documentURL": documentURL,
             "tenantPosition": tenant.tenantPosition,
             "tenantState": tenant.tenantState,
-            "signiture": signature,
+            "signature": signature,
             "firebaseId": firebaseId,
         })
        

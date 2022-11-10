@@ -335,6 +335,7 @@ class AddTenantEmailInput:
     firstName: str
     lastName: str
     email: str
+    password: str
 
 
     def to_json(self):
@@ -365,6 +366,7 @@ class TempTenantInput:
     firstName: str
     lastName: str
     email: str
+
 
     def to_json(self):
         return {

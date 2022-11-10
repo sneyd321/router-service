@@ -12,15 +12,16 @@ from models.graphql_types import *
 import json, itertools, asyncio, base64, aiohttp
 
 cloudRun = CloudRun()
-#cloudRun.discover_dev()
-cloudRun.discover()
+cloudRun.discover_dev()
 
+
+cloudRun.discover()
 maintenanceTicketRepository = MaintenanceTicketRepository(cloudRun.get_maintenance_ticket_hostname())
-houseRepository = HouseRepository(cloudRun.get_house_hostname())
 leaseRepository = LeaseRepository(cloudRun.get_lease_hostname())
 schedulerRepository = SchedulerRepository(cloudRun.get_scheduler_hostname())
-tenantRepository = TenantRepository(cloudRun.get_tenant_hostname())
 landlordRepository = LandlordRepository(cloudRun.get_landlord_hostname())
+tenantRepository = TenantRepository(cloudRun.get_tenant_hostname())
+houseRepository = HouseRepository(cloudRun.get_house_hostname())
 
 async def get_maintenance_tickets(houseId: int) -> List[MaintenanceTicket]:
     async with aiohttp.ClientSession() as session:
@@ -53,11 +54,11 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
             raise Exception(monad.error_status["reason"])
         
         returnedMaintenanceTicket = MaintenanceTicket(**monad.get_param_at(0))
-        """
+   
         monad = await schedulerRepository.schedule_maintenance_ticket_upload(session, houseKey, house.firebaseId, returnedMaintenanceTicket, image)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        """
+        
         return returnedMaintenanceTicket
 
 
@@ -165,8 +166,6 @@ async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput) -> T
         return Tenant(**monad.get_param_at(0))
 
 
-
-
 async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: str, documentURL: str) -> Tenant:
     async with aiohttp.ClientSession() as session:
         monad = await houseRepository.get_house_by_house_key(session, houseKey)
@@ -174,16 +173,16 @@ async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: s
             raise Exception(monad.error_status["reason"])
         
         house = NewHouse(**monad.get_param_at(0))
-        monad = await tenantRepository.create_tenant(session, house.id, tenant.to_json())
+        monad = await tenantRepository.update_tenant_state(session, "Approved", tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
         tenant = Tenant(**monad.get_param_at(0))
-        """
-        schedulerRepository.schedule_sign_lease(session, tenant, house.firebaseId, documentURL, signature)
+      
+        monad = await schedulerRepository.schedule_sign_lease(session, tenant, houseKey, house.firebaseId, documentURL, signature)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        """
+
         return tenant
 
 
