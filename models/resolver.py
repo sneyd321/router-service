@@ -142,8 +142,12 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
-        house = monad.get_param_at(0)
-        monad = await leaseRepository.get_lease_by_houseId(session, scope, house["id"])
+        house = NewHouse(**monad.get_param_at(0))
+        monad = await leaseRepository.get_lease_by_houseId(session, scope, house.id)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+
+        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, houseKey, monad.get_param_at(0), "")
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return House(**house, lease=Lease(**monad.get_param_at(0)))
@@ -186,7 +190,7 @@ async def add_tenant(houseKey: str, tenant: AddTenantEmailInput, info: Info) -> 
             raise Exception(monad.error_status["reason"])
         house = House(**houseRepsonse, lease=Lease(**monad.get_param_at(0)))
 
-        monad = await tenantRepository.update_tenant_state(session, "Invite_Pending", tenant.to_json())
+        monad = await tenantRepository.update_tenant_state(session, scope, "InvitePending", tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         updatedTenant = Tenant(**monad.get_param_at(0))
@@ -246,7 +250,7 @@ async def tenant_login(login: LoginTenantInput, info: Info) -> Tenant:
 async def get_tenants_by_house_id(houseId: int, info: Info) -> List[Tenant]:
     async with aiohttp.ClientSession() as session:
         tokenPayload = get_auth_token_payload(info)
-        scope = ["/House/3/Tenant"]#tokenPayload["scope"]
+        scope = tokenPayload["scope"]
         monad = await tenantRepository.get_tenants_by_house_id(session, scope, houseId)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])

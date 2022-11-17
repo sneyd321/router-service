@@ -29,7 +29,7 @@ class Authorization:
             scope.append(f"/Lease/{house.id}/RentDeposits")
             scope.append(f"/Lease/{house.id}/RentDiscounts")
             scope.append(f"/Lease/{house.id}/AdditionalTerms")
-            scope.append(f"/Lease/{house.id}/MaintenanceTicket")
+            scope.append(f"/House/{house.id}/MaintenanceTicket")
          
         return scope
 

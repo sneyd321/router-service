@@ -118,7 +118,9 @@ class MaintenanceTicketRepository(Repository):
 
     async def get_maintenance_ticket_by_id(self, session, scopes, houseId, maintenanceTicketId):
         request = Request(self.hostname, f"/House/{houseId}/MaintenanceTicket?query={maintenanceTicketId}")
-        if request.resourcePath in scopes:
+       
+        print(scopes)
+        if f"/House/{houseId}/MaintenanceTicket" in scopes:
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -260,7 +262,7 @@ class LeaseRepository(Repository):
             return await self.put_list(request, *[service.to_json() for service in services])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_utilities(self, session, leaseId, utilities):
+    async def update_utilities(self, session, scopes, leaseId, utilities):
         request = Request(self.hostname, f"/Lease/{leaseId}/Utilities")
         if request.resourcePath in scopes:
             request.set_session(session)
