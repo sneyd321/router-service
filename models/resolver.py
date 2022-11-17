@@ -294,12 +294,12 @@ async def landlord_login(login: LoginLandlordInput, info: Info) -> Landlord:
 
 async def get_device_ids(houseKey: str) -> DeviceId:
     async with aiohttp.ClientSession() as session:
-        monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
+        monad = await houseRepository.get_house_by_house_key(session, [f"/House/{houseKey}"], houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         house = NewHouse(**monad.get_param_at(0))
     
-        monad = await tenantRepository.get_tenants_by_house_id(session, scope, house.id)
+        monad = await tenantRepository.get_tenants_by_house_id(session, [f"/House/{house.id}/Tenant"], house.id)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         tenants = map(lambda tenant: Tenant(**tenant), monad.get_param_at(0))
