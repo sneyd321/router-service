@@ -4,6 +4,16 @@ from datetime import timezone, datetime, timedelta
 
 class Authorization:
 
+
+    def get_tenant_scope(self, house):
+        scope = [
+            "/SignLease",
+            "/MaintenanceTicket",
+            f"/House/{house.id}/MaintenanceTicket",
+            f"/House/{house.houseKey}"
+        ]
+        return scope
+
     def get_landlord_scope(self, landlordId, houses):
         scope = [
             "/Tenant",
@@ -36,10 +46,14 @@ class Authorization:
 
 
 
-    
+    def generate_tenant_token(self, scope):
+        payload = {
+            "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=10),
+            "scope": scope
+        }
+        return jwt.encode(payload, "secret", algorithm="HS256")
             
 
-    
 
     def generate_landlord_token(self, scope):
         payload = {

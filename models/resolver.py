@@ -138,6 +138,7 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
     async with aiohttp.ClientSession() as session:
         tokenPayload = get_auth_token_payload(info)
         scope = tokenPayload["scope"]
+        print(scope)
         monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
@@ -147,10 +148,8 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
-        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, houseKey, monad.get_param_at(0), "")
-        if monad.has_errors():
-            raise Exception(monad.error_status["reason"])
-        return House(**house, lease=Lease(**monad.get_param_at(0)))
+
+        return House(**house.__dict__, lease=Lease(**monad.get_param_at(0)))
    
 
 
@@ -214,18 +213,18 @@ async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput, info
 async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: str, documentURL: str, info: Info) -> Tenant:
     async with aiohttp.ClientSession() as session:
         
-        monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
+        monad = await houseRepository.get_house_by_house_key(session, [f"/House/{houseKey}"], houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        
+        print(monad.get_param_at(0))
         house = NewHouse(**monad.get_param_at(0))
-        monad = await tenantRepository.update_tenant_state(session, scope, "Approved", tenant.to_json())
+        monad = await tenantRepository.update_tenant_state(session, ["/Tenant/Approved"], "Approved", tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
         tenant = Tenant(**monad.get_param_at(0))
       
-        monad = await schedulerRepository.schedule_sign_lease(session, scope, tenant, houseKey, house.firebaseId, documentURL, signature)
+        monad = await schedulerRepository.schedule_sign_lease(session, ["/SignLease"], tenant, houseKey, house.firebaseId, documentURL, signature)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
@@ -235,15 +234,19 @@ async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: s
 async def tenant_login(login: LoginTenantInput, info: Info) -> Tenant:
     async with aiohttp.ClientSession() as session:
         
-        monad = await houseRepository.get_house_by_house_key(session, scope, login.houseKey)
+        monad = await houseRepository.get_house_by_house_key(session, [f"/House/{login.houseKey}"], login.houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         house = NewHouse(**monad.get_param_at(0))
 
-        monad = await tenantRepository.login(session, scope, house.id, login.to_json())
+        monad = await tenantRepository.login(session, house.id, login.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        print(monad.get_param_at(0))
+        scopes = auth.get_tenant_scope(house)
+        token = auth.generate_tenant_token(scopes)
+        info.context["response"].headers["Access-Control-Expose-Headers"] = "Authorization"
+        info.context["response"].headers["Authorization"] = token
+  
         return Tenant(**monad.get_param_at(0))
 
 

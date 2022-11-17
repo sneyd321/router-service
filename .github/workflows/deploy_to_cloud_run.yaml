@@ -1,5 +1,5 @@
 name: Deploy to cloud run
-on: [workflow_dispatch]
+on: [push]
 
 
 jobs:
