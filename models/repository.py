@@ -1,6 +1,9 @@
 from models.request import Request
 from models.monad import RequestMaybeMonad
 import aiohttp
+from models.authorization import Authorization
+
+auth = Authorization()
 
 class Repository:
 
@@ -35,15 +38,19 @@ class TenantRepository(Repository):
         request.set_session(session)
         return await self.post(request, houseId=houseId, **login)
 
-    async def get_tenants_by_house_id(self, session, houseId):
+    async def get_tenants_by_house_id(self, session, scopes, houseId):
         request = Request(self.hostname, f"/House/{houseId}/Tenant")
-        request.set_session(session)
-        return await self.get(request)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_tenant_state(self, session, tenantState, tenant):
+    async def update_tenant_state(self, session, scopes, tenantState, tenant):
         request = Request(self.hostname, f"/Tenant/{tenantState}")
-        request.set_session(session)
-        return await self.post(request, **tenant)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **tenant)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
        
 
 class LandlordRepository(Repository):
@@ -61,10 +68,12 @@ class LandlordRepository(Repository):
         request.set_session(session)
         return await self.post(request, **login)
 
-    async def get_landlord_by_id(self, session, landlordId):
+    async def get_landlord_by_id(self, session, scopes, landlordId):
         request = Request(self.hostname, f"/Landlord/{landlordId}")
-        request.set_session(session)
-        return await self.get(request)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
 
 class HouseRepository(Repository):
@@ -72,43 +81,55 @@ class HouseRepository(Repository):
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def create_house(self, session, landlordId):
+    async def create_house(self, session, scopes, landlordId):
         request = Request(self.hostname, f"/House")
-        request.set_session(session)
-        return await self.post(request, **{"landlordId": landlordId})
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **{"landlordId": landlordId})
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
 
-    async def get_houses(self, session, landlordId):
+    async def get_houses(self, session, scopes, landlordId):
         request = Request(self.hostname, f"/Landlord/{landlordId}/House")
-        request.set_session(session)
-        return await self.get(request)
-      
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+        
 
-    async def get_house_by_house_key(self, session, houseKey) :
+    async def get_house_by_house_key(self, session, scopes, houseKey) :
         request = Request(self.hostname, f"/House/{houseKey}")
-        request.set_session(session)
-        return await self.get(request)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
 class MaintenanceTicketRepository(Repository):
 
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def get_maintenance_tickets(self, session, houseId):
+    async def get_maintenance_tickets(self, session, scopes, houseId):
         request = Request(self.hostname, f"/House/{houseId}/MaintenanceTicket")
-        request.set_session(session)
-        return await self.get(request)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def get_maintenance_ticket_by_id(self, session, houseId, maintenanceTicketId):
+    async def get_maintenance_ticket_by_id(self, session, scopes, houseId, maintenanceTicketId):
         request = Request(self.hostname, f"/House/{houseId}/MaintenanceTicket?query={maintenanceTicketId}")
-        request.set_session(session)
-        return await self.get(request)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.get(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def create_maintenance_ticket(self, session, houseId, maintenanceTicket):
+    async def create_maintenance_ticket(self, session, scopes, houseId, maintenanceTicket):
         request = Request(self.hostname, f"/MaintenanceTicket")
-        request.set_session(session)
-        maintenanceTicket["houseId"] = houseId
-        return await self.post(request, **maintenanceTicket)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            maintenanceTicket["houseId"] = houseId
+            return await self.post(request, **maintenanceTicket)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
         
 
 class SchedulerRepository(Repository):
@@ -116,124 +137,153 @@ class SchedulerRepository(Repository):
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def schedule_maintenance_ticket_upload(self, session, houseKey, firebaseId, maintenanceTicket, image):
+    async def schedule_maintenance_ticket_upload(self, session, scopes, houseKey, firebaseId, maintenanceTicket, image):
         request = Request(self.hostname, "/MaintenanceTicket")
-        request.set_session(session)
-        return await self.post(request, **{
-            "firebaseId": firebaseId,
-            "imageURL": maintenanceTicket.imageURL,
-            "houseKey": houseKey,
-            "maintenanceTicketId": maintenanceTicket.id,
-            "description": maintenanceTicket.description.descriptionText,
-            "firstName": maintenanceTicket.sender.firstName,
-            "lastName": maintenanceTicket.sender.lastName,
-            "image": image
-        })
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **{
+                "firebaseId": firebaseId,
+                "imageURL": maintenanceTicket.imageURL,
+                "houseKey": houseKey,
+                "maintenanceTicketId": maintenanceTicket.id,
+                "description": maintenanceTicket.description.descriptionText,
+                "firstName": maintenanceTicket.sender.firstName,
+                "lastName": maintenanceTicket.sender.lastName,
+                "image": image
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
         
-    async def schedule_lease(self, session, firebaseId, houseKey, lease, signature):
+    async def schedule_lease(self, session, scopes, firebaseId, houseKey, lease, signature):
         request = Request(self.hostname, "/Lease/Ontario")
-        request.set_session(session)
-        return await self.post(request, **{
-            "firebaseId": firebaseId,
-            "houseKey": houseKey,
-            "lease": lease,
-            "signature": signature
-        })
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **{
+                "firebaseId": firebaseId,
+                "houseKey": houseKey,
+                "lease": lease,
+                "signature": signature
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
         
-    async def schedule_add_tenant_email(self, session, houseKey, firebaseId, documentURL, tenant):
+    async def schedule_add_tenant_email(self, session, scopes, houseKey, firebaseId, documentURL, tenant):
         request = Request(self.hostname, f"/AddTenantEmail")
-        request.set_session(session)
-        return await self.post(request, **{
-            "firstName": tenant["firstName"],
-            "lastName": tenant["lastName"],
-            "email": tenant["email"],
-            "houseKey": houseKey,
-            "documentURL": documentURL,
-            "firebaseId": firebaseId,
-        })
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **{
+                "firstName": tenant["firstName"],
+                "lastName": tenant["lastName"],
+                "email": tenant["email"],
+                "houseKey": houseKey,
+                "documentURL": documentURL,
+                "firebaseId": firebaseId,
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
-    async def schedule_sign_lease(self, session, tenant, houseKey, firebaseId, documentURL, signature):
+    async def schedule_sign_lease(self, session, scopes, tenant, houseKey, firebaseId, documentURL, signature):
         request = Request(self.hostname, "/SignLease")
-        request.set_session(session)
-        return await self.post(request, **{
-            "firstName": tenant.firstName,
-            "lastName": tenant.lastName,
-            "email": tenant.email,
-            "houseKey": houseKey,
-            "documentURL": documentURL,
-            "tenantPosition": tenant.tenantPosition,
-            "tenantState": tenant.tenantState,
-            "signature": signature,
-            "firebaseId": firebaseId,
-        })
-       
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, **{
+                "firstName": tenant.firstName,
+                "lastName": tenant.lastName,
+                "email": tenant.email,
+                "houseKey": houseKey,
+                "documentURL": documentURL,
+                "tenantPosition": tenant.tenantPosition,
+                "tenantState": tenant.tenantState,
+                "signature": signature,
+                "firebaseId": firebaseId,
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+        
 
 class LeaseRepository(Repository):
 
     def __init__(self, hostname):
         self.hostname = hostname
 
-    async def create_lease(self, session, houseId, lease):
-        request = Request(self.hostname, f"/House/{houseId}/Lease")
-        request.set_session(session)
-        return await self.post(request, **lease)
+    async def create_lease(self, session, scopes, houseId, lease):
+        request = Request(self.hostname, f"/Lease")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            lease["houseId"] = houseId
+            return await self.post(request, **lease)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def get_lease_by_houseId(self, session, houseId):
+    async def get_lease_by_houseId(self, session, scopes, houseId):
         request = Request(self.hostname, f"/Lease/{houseId}")
         request.set_session(session)
         return await self.get(request)
 
     
-    async def update_landlord_info(self, session, leaseId, landlordInfo):
+    async def update_landlord_info(self, session, scopes, leaseId, landlordInfo):
         request = Request(self.hostname, f"/Lease/{leaseId}/LandlordInfo")
-        request.set_session(session)
-        return await self.put(request, **landlordInfo)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put(request, **landlordInfo)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
 
-    async def update_landlord_address(self, session, leaseId, landlordAddress):
+    async def update_landlord_address(self, session, scopes, leaseId, landlordAddress):
         request = Request(self.hostname, f"/Lease/{leaseId}/LandlordAddress")
-        request.set_session(session)
-        return await self.put(request, **landlordAddress)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put(request, **landlordAddress)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_rental_address(self, session, leaseId, rentalAddress):
+    async def update_rental_address(self, session, scopes, leaseId, rentalAddress):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentalAddress")
-        request.set_session(session)
-        return await self.put(request, **rentalAddress)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put(request, **rentalAddress)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
-    async def update_rent(self, session, leaseId, rent):
+    async def update_rent(self, session, scopes, leaseId, rent):
         request = Request(self.hostname, f"/Lease/{leaseId}/Rent")
-        request.set_session(session)
-        return await self.put(request, **rent)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put(request, **rent)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
-    async def update_tenancy_terms(self, session, leaseId, tenancyTerms):
+    async def update_tenancy_terms(self, session, scopes, leaseId, tenancyTerms):
         request = Request(self.hostname, f"/Lease/{leaseId}/TenancyTerms")
-        request.set_session(session)
-        return await self.put(request, **tenancyTerms)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put(request, **tenancyTerms)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_services(self, session, leaseId, services):
+    async def update_services(self, session, scopes, leaseId, services):
         request = Request(self.hostname, f"/Lease/{leaseId}/Services")
-        request.set_session(session)
-        return await self.put_list(request, *[service.to_json() for service in services])
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put_list(request, *[service.to_json() for service in services])
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
     async def update_utilities(self, session, leaseId, utilities):
         request = Request(self.hostname, f"/Lease/{leaseId}/Utilities")
-        request.set_session(session)
-        return await self.put_list(request, *[utility.to_json() for utility in utilities])
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put_list(request, *[utility.to_json() for utility in utilities])
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def udpate_rent_discounts(self, session, leaseId, rentDiscounts):
+    async def udpate_rent_discounts(self, session, scopes, leaseId, rentDiscounts):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentDiscounts")
-        request.set_session(session)
-        return await self.put_list(request, *[rentDiscount.to_json() for rentDiscount in rentDiscounts])
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put_list(request, *[rentDiscount.to_json() for rentDiscount in rentDiscounts])
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_rent_deposits(self, session, leaseId, rentDeposits):
+    async def update_rent_deposits(self, session, scopes, leaseId, rentDeposits):
         request = Request(self.hostname, f"/Lease/{leaseId}/RentDeposits")
-        request.set_session(session)
-        return await self.put_list(request, *[rentDeposit.to_json() for rentDeposit in rentDeposits])
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put_list(request, *[rentDeposit.to_json() for rentDeposit in rentDeposits])
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
-    async def update_additional_terms(self, session, leaseId, additionalTerms):
+    async def update_additional_terms(self, session, scopes, leaseId, additionalTerms):
         request = Request(self.hostname, f"/Lease/{leaseId}/AdditionalTerms")
-        request.set_session(session)
-        print(additionalTerms)
-        return await self.put_list(request, *[additionalTerm.to_json() for additionalTerm in additionalTerms])
-
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.put_list(request, *[additionalTerm.to_json() for additionalTerm in additionalTerms])
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
