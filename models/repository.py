@@ -28,10 +28,13 @@ class TenantRepository(Repository):
     def __init__(self, hostname):
         self.hostname = hostname
     
-    async def create_tenant(self, session, houseId, tenant):
+    async def create_tenant(self, session, scopes, houseId, tenant):
         request = Request(self.hostname, f"/Tenant")
-        request.set_session(session)
-        return await self.post(request, houseId=houseId, **tenant)
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.post(request, houseId=houseId, **tenant)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
         
     async def login(self, session, houseId, login):
         request = Request(self.hostname, f"/Login")
