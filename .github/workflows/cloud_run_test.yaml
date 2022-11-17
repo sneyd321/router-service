@@ -1,5 +1,5 @@
 name: Run Cloud Run Tests
-on: [workflow_dispatch]
+on: [push]
 
 jobs:
   build:
