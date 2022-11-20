@@ -261,7 +261,7 @@ async def get_tenants_by_house_id(houseId: int, info: Info) -> List[Tenant]:
 
 async def create_landlord_account(landlord: LandlordInput) -> Landlord:
     async with aiohttp.ClientSession() as session:
-        monad = await landlordRepository.create_landlord(session, ["/Landlord"], landlord.to_json())
+        monad = await landlordRepository.create_landlord(session, landlord.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return Landlord(**monad.get_param_at(0))
