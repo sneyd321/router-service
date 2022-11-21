@@ -353,6 +353,7 @@ class TenantInput:
     lastName: str
     email: str
     password: str
+    
 
     def to_json(self):
         return {

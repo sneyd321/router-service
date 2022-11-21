@@ -22,6 +22,14 @@ class Repository:
     async def get(self, request):
         return await RequestMaybeMonad() \
             .bind_data(request.get)
+
+    async def delete(self, request, **kwargs): 
+        return await RequestMaybeMonad(kwargs) \
+            .bind_data(request.delete)
+
+    async def deleteNoBody(self, request): 
+        return await RequestMaybeMonad() \
+            .bind_data(request.deleteNoBody)
         
 class TenantRepository(Repository):
 
@@ -54,7 +62,15 @@ class TenantRepository(Repository):
             request.set_session(session)
             return await self.post(request, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
-       
+    
+    async def delete_tenant(self, session, scopes, tenant):
+        request = Request(self.hostname, f"/Tenant")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            tenant["tenantState"] = "ToBeDeleted"
+            return await self.delete(request, **tenant)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
 
 class LandlordRepository(Repository):
 
@@ -77,6 +93,15 @@ class LandlordRepository(Repository):
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+    
+    async def delete_landlord(self, session, scopes, landlordId):
+        request = Request(self.hostname, f"/Landlord/{landlordId}")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.delete(request, {})
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
+
 
 
 class HouseRepository(Repository):
@@ -89,6 +114,13 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             request.set_session(session)
             return await self.post(request, **{"landlordId": landlordId})
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
+    async def delete_house(self, session, scopes, houseId):
+        request = Request(self.hostname, f"/House/{houseId}")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.deleteNoBody(request, **{})
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
 
@@ -220,6 +252,13 @@ class LeaseRepository(Repository):
         request = Request(self.hostname, f"/Lease/{houseId}")
         request.set_session(session)
         return await self.get(request)
+
+    async def delete_lease_by_house_id(self, session, scopes, houseId):
+        request = Request(self.hostname, f"/Lease/{houseId}")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            return await self.deleteNoBody(request)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
     
     async def update_landlord_info(self, session, scopes, leaseId, landlordInfo):

@@ -151,6 +151,29 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
 
         return House(**house.__dict__, lease=Lease(**monad.get_param_at(0)))
    
+async def delete_house(houseId: int) -> NewHouse:
+    async with aiohttp.ClientSession() as session:
+
+        monad = await tenantRepository.get_tenants_by_house_id(session, [f"/House/{houseId}/Tenant"], houseId)
+        if monad.has_errors():
+                raise Exception(monad.error_status["reason"])
+        for tenantAsJson in monad.get_param_at(0):
+            tenantAsJson["password"] = ""
+            monad = await tenantRepository.delete_tenant(session, ["/Tenant"], tenantAsJson)
+            if monad.has_errors():
+                raise Exception(monad.error_status["reason"])
+        
+        monad = await leaseRepository.delete_lease_by_house_id(session, [f"/Lease/{houseId}"], houseId)
+        if monad.has_errors() and monad.error_status["reason"] != "No data in repository monad":
+            raise Exception(monad.error_status["reason"])
+
+        monad = await houseRepository.delete_house(session, [f"/House/{houseId}"], houseId)
+        
+        
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        
+        return NewHouse(**monad.get_param_at(0))
 
 
 
@@ -258,6 +281,16 @@ async def get_tenants_by_house_id(houseId: int, info: Info) -> List[Tenant]:
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return [Tenant(**json) for json in monad.get_param_at(0)]
+
+async def delete_tenants(tenant: TenantInput, info: Info) -> Tenant:
+    async with aiohttp.ClientSession() as session:
+        
+        monad = await tenantRepository.delete_tenant(session, ["/Tenant"], tenant.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Tenant(**monad.get_param_at(0))
+
+
 
 async def create_landlord_account(landlord: LandlordInput) -> Landlord:
     async with aiohttp.ClientSession() as session:

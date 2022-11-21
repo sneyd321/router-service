@@ -11,6 +11,7 @@ class Mutation:
     createMaintenanceTicket: MaintenanceTicket = strawberry.mutation(resolver=add_maintenance_ticket)
     
     createHouse: House = strawberry.mutation(resolver=add_house)
+    deleteHouse: NewHouse = strawberry.mutation(resolver=delete_house)
     
     updateLandlordInfo: LandlordInfo = strawberry.mutation(resolver=update_landlord_info)
     updateLandlordAddress: LandlordAddress = strawberry.mutation(resolver=update_landlord_address)
@@ -28,6 +29,7 @@ class Mutation:
     addTenant: Tenant = strawberry.field(resolver=add_tenant)
     createTenant: Tenant = strawberry.field(resolver=create_tenant_account)
     createTempTenant: Tenant = strawberry.field(resolver=create_temp_tenant_account)
+    deleteTenant: Tenant = strawberry.field(resolver=delete_tenants)
 
     createLandlord: Landlord = strawberry.field(resolver=create_landlord_account)
 

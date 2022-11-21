@@ -15,10 +15,12 @@ class Request:
 
     async def determine_response(self, response):
         print(response.status)
+        
         if response.status == 500:
             return { "status_code": 500, "detail": "An unexpected error occured" }
 
         data = await response.json()
+        print(data)
         if response.status == 422:
             return { "status_code": 422, "detail": str(data["detail"]) }
         if response.status == 409:
@@ -41,5 +43,15 @@ class Request:
     async def put(self, payload):
         async with self.session.put(self.hostname + self.resourcePath, json=payload) as response:
             return await self.determine_response(response)
+
+    async def delete(self, payload):
+        async with self.session.delete(self.hostname + self.resourcePath,json=payload) as response:
+            return await self.determine_response(response)
+
+    async def deleteNoBody(self):
+        async with self.session.delete(self.hostname + self.resourcePath) as response:
+            return await self.determine_response(response)
+
+   
 
 
