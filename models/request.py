@@ -29,6 +29,8 @@ class Request:
             return { "status_code": 404, "detail": str(data["detail"]) }
         if response.status == 401:
             return { "status_code": 401, "detail": str(data["detail"]) }
+        if response.status == 405:
+            return { "status_code": 405, "detail": str(data["detail"]) }
         return await response.json()
 
 

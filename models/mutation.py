@@ -29,7 +29,7 @@ class Mutation:
     addTenant: Tenant = strawberry.field(resolver=add_tenant)
     createTenant: Tenant = strawberry.field(resolver=create_tenant_account)
     createTempTenant: Tenant = strawberry.field(resolver=create_temp_tenant_account)
-    deleteTenant: Tenant = strawberry.field(resolver=delete_tenants)
+    deleteTenant: Tenant = strawberry.field(resolver=delete_tenant)
 
     createLandlord: Landlord = strawberry.field(resolver=create_landlord_account)
 

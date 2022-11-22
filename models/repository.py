@@ -60,7 +60,7 @@ class TenantRepository(Repository):
         request = Request(self.hostname, f"/Tenant/{tenantState}")
         if request.resourcePath in scopes:
             request.set_session(session)
-            return await self.post(request, **tenant)
+            return await self.put(request, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
     async def delete_tenant(self, session, scopes, tenant):

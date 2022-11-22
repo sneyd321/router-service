@@ -213,6 +213,7 @@ async def add_tenant(houseKey: str, tenant: AddTenantEmailInput, info: Info) -> 
         house = House(**houseRepsonse, lease=Lease(**monad.get_param_at(0)))
 
         monad = await tenantRepository.update_tenant_state(session, scope, "InvitePending", tenant.to_json())
+        
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         updatedTenant = Tenant(**monad.get_param_at(0))
@@ -282,10 +283,11 @@ async def get_tenants_by_house_id(houseId: int, info: Info) -> List[Tenant]:
             raise Exception(monad.error_status["reason"])
         return [Tenant(**json) for json in monad.get_param_at(0)]
 
-async def delete_tenants(tenant: TenantInput, info: Info) -> Tenant:
+async def delete_tenant(tenant: TenantInput, info: Info) -> Tenant:
     async with aiohttp.ClientSession() as session:
-        
-        monad = await tenantRepository.delete_tenant(session, ["/Tenant"], tenant.to_json())
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await tenantRepository.delete_tenant(session, scope, tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return Tenant(**monad.get_param_at(0))
