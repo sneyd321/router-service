@@ -138,7 +138,6 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
     async with aiohttp.ClientSession() as session:
         tokenPayload = get_auth_token_payload(info)
         scope = tokenPayload["scope"]
-        print(scope)
         monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
@@ -153,7 +152,8 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
    
 async def delete_house(houseId: int) -> NewHouse:
     async with aiohttp.ClientSession() as session:
-
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
         monad = await tenantRepository.get_tenants_by_house_id(session, [f"/House/{houseId}/Tenant"], houseId)
         if monad.has_errors():
                 raise Exception(monad.error_status["reason"])
