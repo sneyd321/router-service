@@ -116,6 +116,15 @@ class HouseRepository(Repository):
             return await self.post(request, **{"landlordId": landlordId})
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
+    async def createTenantNotification(self, session, scopes, firebaseId, houseKey, tenant):
+        request = Request(self.hostname, f"/Notification/{firebaseId}/TenantAccountCreated")
+        if request.resourcePath in scopes:
+            request.set_session(session)
+            tenant["houseKey"] = houseKey
+            return await self.post(request, **tenant)
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
+
     async def delete_house(self, session, scopes, houseId):
         request = Request(self.hostname, f"/House/{houseId}")
         if request.resourcePath in scopes:

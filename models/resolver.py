@@ -234,24 +234,49 @@ async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput, info
         return Tenant(**monad.get_param_at(0))
 
 
-async def create_tenant_account(houseKey: str, tenant: TenantInput, signature: str, documentURL: str, info: Info) -> Tenant:
+async def sign_tenant(houseKey: str, tenant: TenantSignInput, signature: str, info: Info):
+    async with aiohttp.ClientSession() as session:
+        #tokenPayload = get_auth_token_payload(info)
+        #scope = tokenPayload["scope"]
+        scope = [f"/House/{houseKey}"]
+        monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+
+        newHouse = NewHouse(**monad.get_param_at(0))
+        scope = [f"House/{newHouse.id}/Lease"]
+        monad = await leaseRepository.get_lease_by_houseId(session, scope, newHouse.id)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        house = House(**newHouse.__dict__, lease=Lease(**monad.get_param_at(0)))
+
+        scope = [ "/SignLease"]
+        monad = await schedulerRepository.schedule_sign_lease(session, scope, tenant, houseKey, house.firebaseId, house.lease.documentURL, signature)
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        tenantData = tenant.to_json()
+        tenantData.pop("password")
+        return Tenant(**tenantData, deviceId="", houseId=house.id)
+
+
+
+async def create_tenant_account(houseKey: str, tenant: TenantInput, info: Info) -> Tenant:
     async with aiohttp.ClientSession() as session:
         
         monad = await houseRepository.get_house_by_house_key(session, [f"/House/{houseKey}"], houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-        print(monad.get_param_at(0))
         house = NewHouse(**monad.get_param_at(0))
+
+        monad = await houseRepository.createTenantNotification(session, [f"/Notification/{house.firebaseId}/TenantAccountCreated"], house.firebaseId, house.houseKey, tenant.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+  
         monad = await tenantRepository.update_tenant_state(session, ["/Tenant/Approved"], "Approved", tenant.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
-
         tenant = Tenant(**monad.get_param_at(0))
       
-        monad = await schedulerRepository.schedule_sign_lease(session, ["/SignLease"], tenant, houseKey, house.firebaseId, documentURL, signature)
-        if monad.has_errors():
-            raise Exception(monad.error_status["reason"])
-
         return tenant
 
 

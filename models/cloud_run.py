@@ -19,7 +19,6 @@ class CloudRun:
         'router': 'http://localhost:8081', 
         'landlord-service': 'http://localhost:8086', 
         'tenant-service': 'http://localhost:8085', 
-        'roomr-tenant': '', 
         'lease-service': 'http://localhost:8000', 
         'house-service': 'http://localhost:8082', 
         'scheduler': 'https://scheduler-s5xgw6tidq-uc.a.run.app', 
