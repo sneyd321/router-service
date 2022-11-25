@@ -27,7 +27,7 @@ jobs:
           docker push us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router
       - name: Deploy to Cloud run
         run: |
-          gcloud run deploy router --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/cloud_run_service_account:1 --vpc-connector=vpc-connector-2
+          gcloud run deploy router --region=us-central1 --image us-central1-docker.pkg.dev/roomr-222721/roomr-docker-repo/router:latest --allow-unauthenticated --update-secrets=/usr/src/app/models/static/ServiceAccount.json=projects/959426188245/secrets/cloud_run_service_account:1,JWT_SECRET=JWT_SECRET:1 --vpc-connector=vpc-connector-2
           
     
           

@@ -60,12 +60,12 @@ class Authorization:
             "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=10),
             "scope": scope
         }
-        return jwt.encode(payload, "secret", algorithm="HS256")
+        return jwt.encode(payload, os.environ["JWT_SECRET"], algorithm="HS256")
 
 
     def get_token_payload(self, token):
         try:
-            return jwt.decode(token, "secret", algorithms=["HS256"])
+            return jwt.decode(token, os.environ["JWT_SECRET"], algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
             return {}
 
