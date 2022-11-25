@@ -22,13 +22,14 @@ class Authorization:
             "/Tenant/Approved",
             "/AddTenantEmail",
             "/Lease/Ontario",
+            "/Lease",
             "/House",
             f"/Landlord/{landlordId}/House"
         ]
         for house in houses:
             scope.append(f"/House/{house.id}/Tenant")
             scope.append(f"/House/{house.houseKey}")
-            scope.append(f"/Lease")
+           
             scope.append(f"/Lease/{house.id}/LandlordInfo")
             scope.append(f"/Lease/{house.id}/LandlordAddress")
             scope.append(f"/Lease/{house.id}/RentalAddress")
