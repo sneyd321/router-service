@@ -1,6 +1,8 @@
 import aiohttp
 import asyncio
 
+
+
 class Request:
 
     def __init__(self, hostname, resourcePath, **kwargs):
@@ -35,22 +37,35 @@ class Request:
 
 
     async def get(self):
-        async with self.session.get(self.hostname + self.resourcePath) as response:
-            return await self.determine_response(response)
+        response = await self.session.get(self.hostname + self.resourcePath)
+        return await self.determine_response(response)
 
     async def post(self, payload):
+        auth_req = google.auth.transport.requests.Request()
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+        print(id_token)
+        self.session.headers.add("Authorization", f"Bearer {id_token}")
         async with self.session.post(self.hostname + self.resourcePath, json=payload) as response:
             return await self.determine_response(response)
                 
     async def put(self, payload):
+        auth_req = google.auth.transport.requests.Request()
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+        self.session.headers.add("Authorization", f"Bearer {id_token}")
         async with self.session.put(self.hostname + self.resourcePath, json=payload) as response:
             return await self.determine_response(response)
 
     async def delete(self, payload):
+        auth_req = google.auth.transport.requests.Request()
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+        self.session.headers.add("Authorization", f"Bearer {id_token}")
         async with self.session.delete(self.hostname + self.resourcePath,json=payload) as response:
             return await self.determine_response(response)
 
     async def deleteNoBody(self):
+        auth_req = google.auth.transport.requests.Request()
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+        self.session.headers.add("Authorization", f"Bearer {id_token}")
         async with self.session.delete(self.hostname + self.resourcePath) as response:
             return await self.determine_response(response)
 
