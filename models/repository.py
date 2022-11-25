@@ -46,7 +46,7 @@ class TenantRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, houseId=houseId, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -56,7 +56,7 @@ class TenantRepository(Repository):
         request = Request(self.hostname, f"/Login")
         auth_req = google.auth.transport.requests.Request()
         id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-        session.headers.add("Authorization", f"Bearer {id_token}")
+        session.headers["Authorization"] = f"Bearer {id_token}"
         request.set_session(session)
         return await self.post(request, houseId=houseId, **login)
 
@@ -65,7 +65,7 @@ class TenantRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -75,7 +75,7 @@ class TenantRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -85,7 +85,7 @@ class TenantRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             tenant["tenantState"] = "ToBeDeleted"
             return await self.delete(request, **tenant)
@@ -101,7 +101,7 @@ class LandlordRepository(Repository):
         request = Request(self.hostname, "/Landlord")
         auth_req = google.auth.transport.requests.Request()
         id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-        session.headers.add("Authorization", f"Bearer {id_token}")
+        session.headers["Authorization"] = f"Bearer {id_token}"
         request.set_session(session)
         return await self.post(request, **landlord)
 
@@ -109,7 +109,7 @@ class LandlordRepository(Repository):
         request = Request(self.hostname, "/Login")
         auth_req = google.auth.transport.requests.Request()
         id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-        session.headers.add("Authorization", f"Bearer {id_token}")
+        session.headers["Authorization"] = f"Bearer {id_token}"
         request.set_session(session)
         return await self.post(request, **login)
 
@@ -118,7 +118,7 @@ class LandlordRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -128,7 +128,7 @@ class LandlordRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.delete(request, {})
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -146,7 +146,7 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{"landlordId": landlordId})
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -156,7 +156,7 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             tenant["houseKey"] = houseKey
             return await self.post(request, **tenant)
@@ -168,7 +168,7 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.deleteNoBody(request, **{})
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -179,7 +179,7 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -190,7 +190,7 @@ class HouseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -205,7 +205,7 @@ class MaintenanceTicketRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.get(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -215,7 +215,7 @@ class MaintenanceTicketRepository(Repository):
         if f"/House/{houseId}/MaintenanceTicket" in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             
             return await self.get(request)
@@ -226,7 +226,7 @@ class MaintenanceTicketRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             maintenanceTicket["houseId"] = houseId
             return await self.post(request, **maintenanceTicket)
@@ -243,7 +243,7 @@ class SchedulerRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{
                 "firebaseId": firebaseId,
@@ -263,7 +263,7 @@ class SchedulerRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{
                 "firebaseId": firebaseId,
@@ -278,7 +278,7 @@ class SchedulerRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{
                 "firstName": tenant["firstName"],
@@ -295,7 +295,7 @@ class SchedulerRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{
                 "firstName": tenant.firstName,
@@ -321,7 +321,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             lease["houseId"] = houseId
             return await self.post(request, **lease)
@@ -330,9 +330,9 @@ class LeaseRepository(Repository):
     async def get_lease_by_houseId(self, session, scopes, houseId):
         request = Request(self.hostname, f"/Lease/{houseId}")
         auth_req = google.auth.transport.requests.Request()
-            id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
-            request.set_session(session)
+        id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+        session.headers["Authorization"] = f"Bearer {id_token}"
+        request.set_session(session)
         return await self.get(request)
 
     async def delete_lease_by_house_id(self, session, scopes, houseId):
@@ -340,7 +340,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.deleteNoBody(request)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -351,7 +351,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **landlordInfo)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -362,7 +362,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **landlordAddress)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -372,7 +372,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **rentalAddress)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -382,7 +382,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **rent)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -392,7 +392,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put(request, **tenancyTerms)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -402,7 +402,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put_list(request, *[service.to_json() for service in services])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -412,7 +412,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put_list(request, *[utility.to_json() for utility in utilities])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -422,7 +422,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put_list(request, *[rentDiscount.to_json() for rentDiscount in rentDiscounts])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -432,7 +432,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put_list(request, *[rentDeposit.to_json() for rentDeposit in rentDeposits])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
@@ -442,7 +442,7 @@ class LeaseRepository(Repository):
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
-            session.headers.add("Authorization", f"Bearer {id_token}")
+            session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.put_list(request, *[additionalTerm.to_json() for additionalTerm in additionalTerms])
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
