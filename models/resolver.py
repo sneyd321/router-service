@@ -236,9 +236,9 @@ async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput, info
 
 async def sign_tenant(houseKey: str, tenant: TenantSignInput, signature: str, info: Info):
     async with aiohttp.ClientSession() as session:
-        #tokenPayload = get_auth_token_payload(info)
-        #scope = tokenPayload["scope"]
-        scope = [f"/House/{houseKey}"]
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+       
         monad = await houseRepository.get_house_by_house_key(session, scope, houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
@@ -260,9 +260,8 @@ async def sign_tenant(houseKey: str, tenant: TenantSignInput, signature: str, in
 
 
 
-async def create_tenant_account(houseKey: str, tenant: TenantInput, info: Info) -> Tenant:
+async def create_tenant_account(houseKey: str, tenant: TenantSignInput, info: Info) -> Tenant:
     async with aiohttp.ClientSession() as session:
-        
         monad = await houseRepository.get_house_by_house_key(session, [f"/House/{houseKey}"], houseKey)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
