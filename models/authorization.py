@@ -52,7 +52,7 @@ class Authorization:
             "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=10),
             "scope": scope
         }
-        return jwt.encode(payload, "secret", algorithm="HS256")
+        return jwt.encode(payload, os.environ.get("JWT_SECRET", "secret"), algorithm="HS256")
             
 
 
