@@ -54,4 +54,5 @@ class RequestMaybeMonad:
             return RequestMaybeMonad(None, error_status={"status": 408, "reason": "Failed to connect downstream service"})
         except aiohttp.ClientResponseError:
             return RequestMaybeMonad(None, error_status={"status": 502, "reason": "Recieved invalid downstream response"})
-        
+        except asyncio.exceptions.TimeoutError:
+            return RequestMaybeMonad(None, error_status={"status": 408, "reason": "Connection timed out"})
