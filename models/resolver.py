@@ -88,23 +88,23 @@ async def add_maintenance_ticket(houseKey: str, maintenanceTicket: MaintenanceTi
 
 
 
-async def add_house(landlordId: int, lease: LeaseInput, info: Info) -> House:
+async def add_house(landlord: LandlordInput, lease: LeaseInput, info: Info) -> House:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
         tokenPayload = get_auth_token_payload(info)
         scope = tokenPayload["scope"]
-        monad = await houseRepository.create_house(session, scope, landlordId)
+        monad = await houseRepository.create_house(session, scope, landlord.id)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         
 
         house = House(**monad.get_param_at(0), lease=None)
-        print(scope)
         monad = await leaseRepository.create_lease(session, scope, house.id, lease.to_json())
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
 
-        house.lease = Lease(**monad.get_param_at(0))
-        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, house.houseKey, monad.get_param_at(0), "")
+        leaseData = monad.get_param_at(0)
+        house.lease = Lease(**leaseData)
+        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, house.houseKey, leaseData, landlord.landlordAddress.to_json(), "")
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return house
@@ -232,7 +232,8 @@ async def create_temp_tenant_account(houseId: int, tenant: TempTenantInput, info
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
         tokenPayload = get_auth_token_payload(info)
         scope = tokenPayload["scope"]
-        monad = await tenantRepository.create_tenant(session, scope, houseId, tenant.to_json())
+        tenantData = tenant.to_json()
+        monad = await tenantRepository.create_temp_tenant(session, scope, houseId, tenantData)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return Tenant(**monad.get_param_at(0))
@@ -322,7 +323,7 @@ async def delete_tenant(tenant: TenantInput, info: Info) -> Tenant:
 
 
 
-async def create_landlord_account(landlord: LandlordInput) -> Landlord:
+async def create_landlord_account(landlord: CreateLandlordInput) -> Landlord:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
         monad = await landlordRepository.create_landlord(session, landlord.to_json())
         if monad.has_errors():
@@ -349,6 +350,24 @@ async def landlord_login(login: LoginLandlordInput, info: Info) -> Landlord:
         tokenPayload = auth.get_token_payload(token)
         return landlord
 
+
+async def update_landlord(landlord: LandlordInput, info: Info) -> Landlord:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await landlordRepository.update_landlord(session, scope, landlord.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Landlord(**monad.get_param_at(0))
+
+async def delete_landlord(landlord: LandlordInput, info: Info) -> Landlord:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await landlordRepository.delete_landlord(session, scope, landlord.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Landlord(**monad.get_param_at(0))
 
 
 async def get_device_ids(houseKey: str) -> DeviceId:

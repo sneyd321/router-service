@@ -24,6 +24,7 @@ class Authorization:
             "/Lease/Ontario",
             "/Lease",
             "/House",
+            "/Landlord",
             f"/Landlord/{landlordId}/House"
         ]
         for house in houses:

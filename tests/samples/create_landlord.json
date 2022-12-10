@@ -1,0 +1,16 @@
+{
+    "firstName": "Ryan",
+    "lastName": "Sneyd",
+    "phoneNumber": "adfdsafsa",
+    "email": "q@s.com",
+    "password": "aaaaaa",
+    "landlordAddress": {
+        "city": "Oakville", 
+        "poBox": "22122", 
+        "postalCode": "L6L", 
+        "province": "Oario", 
+        "streetName": "Bronte ", 
+        "streetNumber": "111", 
+        "unitNumber": "207"
+      }
+}

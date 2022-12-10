@@ -330,7 +330,6 @@ class Lease:
     documentName: str
     documentState: str
     landlordInfo: LandlordInfo
-    landlordAddress: LandlordAddress
     rentalAddress: RentalAddress
     rent: Rent
     tenancyTerms: TenancyTerms
@@ -344,7 +343,6 @@ class Lease:
         self.id = kwargs.get("id")
         self.houseId = kwargs.get("houseId")
         self.landlordInfo = LandlordInfo(**kwargs.get("landlordInfo"))
-        self.landlordAddress = LandlordAddress(**kwargs.get("landlordAddress"))
         self.rentalAddress = RentalAddress(**kwargs.get("rentalAddress"))
         self.rent = Rent(**kwargs.get("rent"))
         self.tenancyTerms = TenancyTerms(**kwargs.get("tenancyTerms"))
@@ -386,8 +384,9 @@ class Tenant:
     firstName: str
     lastName: str
     email: str
-    tenantState: str
-    tenantPosition: int
+    phoneNumber: str
+    profileURL: str
+    state: str
     houseId: int
     deviceId: str
 
@@ -398,7 +397,23 @@ class Landlord:
     firstName: str
     lastName: str
     email: str
+    phoneNumber: str
+    state: str
     deviceId: str
+    profileURL: str
+    landlordAddress: Union[LandlordAddress, None]
+
+    def __init__(self, **kwargs):
+        self.id = kwargs.get("id")
+        self.firstName = kwargs.get("firstName")
+        self.lastName = kwargs.get("lastName")
+        self.email = kwargs.get("email")
+        self.phoneNumber = kwargs.get("phoneNumber")
+        self.state = kwargs.get("state")
+        self.deviceId = kwargs.get("deviceId", "")
+        self.profileURL = kwargs.get("profileURL")
+        self.landlordAddress = LandlordAddress(**kwargs.get("landlordAddress", {}))
+
 
 @strawberry.type
 class DeviceId:

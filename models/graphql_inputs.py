@@ -301,7 +301,6 @@ class AdditionalTermInput:
 @strawberry.input
 class LeaseInput:
     landlordInfo: LandlordInfoInput
-    landlordAddress: LandlordAddressInput
     rentalAddress: RentalAddressInput
     rent: RentInput
     tenancyTerms: TenancyTermsInput
@@ -314,7 +313,6 @@ class LeaseInput:
     def to_json(self):
         return {
             "landlordInfo": self.landlordInfo.to_json(),
-            "landlordAddress": self.landlordAddress.to_json(),
             "rentalAddress": self.rentalAddress.to_json(),
             "rent": self.rent.to_json(),
             "tenancyTerms": self.tenancyTerms.to_json(),
@@ -326,8 +324,6 @@ class LeaseInput:
         }
 
   
-
-
 
 
 @strawberry.input
@@ -417,18 +413,50 @@ class LoginTenantInput:
 
 @strawberry.input
 class LandlordInput:
+    id: int
     firstName: str
     lastName: str
     email: str
+    phoneNumber: str
+    state: str
+    deviceId: str
+    profileURL: str
     password: str
+    landlordAddress: Union[LandlordAddressInput, None]
 
     def to_json(self):
         return {
             "firstName": self.firstName,
             "lastName": self.lastName,
-            'email': self.email, 
-            'password': self.password, 
+            "phoneNumber": self.phoneNumber,
+            "email": self.email,
+            "state": self.state,
+            "deviceId": self.deviceId,
+            "profileURL": self.profileURL,
+            "password": self.password,
+            "landlordAddress": self.landlordAddress.to_json(),
         }
+
+@strawberry.input
+class CreateLandlordInput:
+    firstName: str
+    lastName: str
+    email: str
+    phoneNumber: str
+    password: str
+    landlordAddress: Union[LandlordAddressInput, None]
+
+    def to_json(self):
+        return {
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+            "phoneNumber": self.phoneNumber,
+            "email": self.email,
+            "password": self.password,
+            "landlordAddress": self.landlordAddress.to_json(),
+        }
+            
+
 
 
 @strawberry.input

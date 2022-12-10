@@ -33,6 +33,8 @@ class Mutation:
     deleteTenant: Tenant = strawberry.field(resolver=delete_tenant)
 
     createLandlord: Landlord = strawberry.field(resolver=create_landlord_account)
+    updateLandlord: Landlord = strawberry.field(resolver=update_landlord)
+    deleteLandlord: Landlord = strawberry.field(resolver=delete_landlord)
 
     loginTenant: Tenant = strawberry.field(resolver=tenant_login)
     loginLandlord: Landlord = strawberry.field(resolver=landlord_login)

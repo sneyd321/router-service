@@ -3,123 +3,106 @@ from models.cloud_run import CloudRun
 from models.graphql_inputs import TenantInput, LoginTenantInput
 import uuid
 import aiohttp
+import json
+import pytest
 
 cloudRun = CloudRun()
-cloudRun.discover_dev()
-#cloudRun.discover()
-
+#cloudRun.discover_dev()
+cloudRun.discover()
 repository = TenantRepository(cloudRun.get_tenant_hostname())
 
-async def test_Router_insert_tenant_returns_successfully():
-    async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": f"{uuid.uuid4()}@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-        monad = await repository.create_tenant(session, 1, tenant)
-        assert list(monad.get_param_at(0).keys()) == ['houseId', 'firstName', 'lastName', 'email', 'tenantState', 'tenantPosition', 'deviceId']
 
-
-async def test_Router_insert_tenant_returns_conflict_error_on_duplicate_email():
+async def test_Router_create_temp_tenant_returns_successfully():
     async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-        monad = await repository.create_tenant(session, 1, tenant)
-        monad = await repository.create_tenant(session, 1, tenant)
-        monad.error_status == {"status": 409, "reason": "Failed to insert data into database" }
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantInput = json.load(temp_tenant)
+            tenantInput["email"] = str(uuid.uuid4())
+        monad = await repository.create_temp_tenant(session, "/Tenant", 1, tenantInput, isTest=True)
+        assert not monad.has_errors()
 
 
 async def test_Router_tenant_login_returns_successfully():
     async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-    
-        monad = await repository.create_tenant(session, 1, tenant)
-        tenantLogin ={
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "houseKey": "DASFDSF",
-            "deviceId": "eigTlTqf3fuwYzBIC1jEv_:APA91bGKdeWytYJrBfCZHiqDg4_1Bs-MDi6zYcQECyZdL01dxaVljVTGmxL3E2Jnr97oUkQmyy_yDvyXqR9tRsRJFzUfG22snpLYyoDR5NwfhjZmyMhpyV83GzNOH9ollgS1QU7zMNvr"
-        }
-        monad = await repository.login(session, 1, tenantLogin)
-        assert list(monad.get_param_at(0).keys()) == ['houseId', 'firstName', 'lastName', 'email', 'tenantState', 'tenantPosition', 'deviceId']
+        email = str(uuid.uuid4())
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantEmailInput = json.load(temp_tenant)
+            tenantEmailInput["email"] = email
+        monad = await repository.create_temp_tenant(session, "/Tenant", 1, tenantEmailInput, isTest=True)
+        
+        with open("./tests/samples/tenant.json", mode="r") as tenant:
+            tenantInput = json.load(tenant)
+            tenantInput["email"] = email
+        monad = await repository.update_tenant_state(session, "/Tenant/Approved", "Approved", tenantInput)
+
+        with open("./tests/samples/tenant.json", mode="r") as tenant:
+            tenantInput = json.load(tenant)
+            tenantInput["email"] = email
+        monad = await repository.update_tenant_state(session, "/Tenant/Approved", "Approved", tenantInput)
+        monad = await repository.update_tenant(session, "/Tenant", tenantInput)
 
 
-async def test_Router_tenant_login_returns_401_error_on_invalid_password():
-    async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-    
-        monad = await repository.create_tenant(session, 1, tenant)
-        tenantLogin = {
-            "email": "aaaa@s.com",
-            "password": "bbbbbb",
-            "houseKey": "DASFDSF",
-            "deviceId": "eigTlTqf3fuwYzBIC1jEv_:APA91bGKdeWytYJrBfCZHiqDg4_1Bs-MDi6zYcQECyZdL01dxaVljVTGmxL3E2Jnr97oUkQmyy_yDvyXqR9tRsRJFzUfG22snpLYyoDR5NwfhjZmyMhpyV83GzNOH9ollgS1QU7zMNvr"
-        }
-        monad = await repository.login(session, 1, tenantLogin)
-        assert monad.error_status == {"status": 401, "reason": "Invalid email or password" }
-
-
-async def test_Router_tenant_login_returns_404_error_on_non_existing_account():
-    async with aiohttp.ClientSession() as session:
-        tenantLogin = {
-            "email": "fdsafdsafadsf@s.com",
-            "password": "bbbbbb",
-            "houseKey": "DASFDSF",
-            "deviceId": "eigTlTqf3fuwYzBIC1jEv_:APA91bGKdeWytYJrBfCZHiqDg4_1Bs-MDi6zYcQECyZdL01dxaVljVTGmxL3E2Jnr97oUkQmyy_yDvyXqR9tRsRJFzUfG22snpLYyoDR5NwfhjZmyMhpyV83GzNOH9ollgS1QU7zMNvr"
-        }
-        monad = await repository.login(session, 1, tenantLogin)
-        assert monad.error_status == {"status": 404, "reason": "Invalid email or password" }
-
-
-async def test_Router_tenant_login_returns_403_error_on_invalid_house_id():
-    async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-        monad = await repository.create_tenant(session, 1, tenant)
-        tenantLogin = {
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "houseKey": "FDSAF",
-            "deviceId": "eigTlTqf3fuwYzBIC1jEv_:APA91bGKdeWytYJrBfCZHiqDg4_1Bs-MDi6zYcQECyZdL01dxaVljVTGmxL3E2Jnr97oUkQmyy_yDvyXqR9tRsRJFzUfG22snpLYyoDR5NwfhjZmyMhpyV83GzNOH9ollgS1QU7zMNvr"
-        }
-        monad = await repository.login(session, 5, tenantLogin)
-        assert monad.error_status == {"status": 403, "reason": "Invalid house key"}
+        with open("./tests/samples/tenant_login.json", mode="r") as tenant_login:
+            tenantLoginInput = json.load(tenant_login)
+            tenantLoginInput["email"] = email
+        monad = await repository.login(session, 1, tenantLoginInput)
+        assert not monad.has_errors()
 
 
 async def test_Router_get_tenants_house_id_returns_successfully():
     async with aiohttp.ClientSession() as session:
-        tenant = {
-            "firstName": "Timmy11",
-            "lastName": "Tenant",
-            "email": "aaaa@s.com",
-            "password": "aaaaaa",
-            "tenantState": "Not Approved",
-        }
-        monad = await repository.create_tenant(session, 1, tenant)
-        monad = await repository.get_tenants_by_house_id(session, 1)
-        assert len(monad.get_param_at(0)) > 1
+        email = str(uuid.uuid4())
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantEmailInput = json.load(temp_tenant)
+            tenantEmailInput["email"] = email
+        await repository.create_temp_tenant(session, "/Tenant", 4, tenantEmailInput, isTest=True)
+        
+        monad = await repository.get_tenants_by_house_id(session, "/House/4/Tenant", 4)
+        assert len(monad.get_param_at(0)) > 0
+
+async def test_Router_update_tenant_state_successfully():
+    async with aiohttp.ClientSession() as session:
+        email = str(uuid.uuid4())
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantEmailInput = json.load(temp_tenant)
+            tenantEmailInput["email"] = email
+        await repository.create_temp_tenant(session, "/Tenant", 1, tenantEmailInput, isTest=True)
+        
+        with open("./tests/tenant.json", mode="r") as tenant:
+            tenantInput = json.load(tenant)
+            tenantInput["email"] = email
+        monad = await repository.update_tenant_state(session, "/Tenant/Approved", "Approved", tenantInput)
+        assert not monad.has_errors()
+
+
+async def test_Router_update_tenant_successfully():
+    async with aiohttp.ClientSession() as session:
+        email = str(uuid.uuid4())
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantEmailInput = json.load(temp_tenant)
+            tenantEmailInput["email"] = email
+        monad = await repository.create_temp_tenant(session, "/Tenant", 1, tenantEmailInput, isTest=True)
+        
+        with open("./tests/samples/tenant.json", mode="r") as tenant:
+            tenantInput = json.load(tenant)
+            tenantInput["email"] = email
+        await repository.update_tenant_state(session, "/Tenant/Approved", "Approved", tenantInput)
+        monad = await repository.update_tenant(session, "/Tenant", tenantInput)
+
+        assert not monad.has_errors()
+
+
+async def test_Router_delete_tenant_successfully():
+    async with aiohttp.ClientSession() as session:
+        email = str(uuid.uuid4())
+        with open("./tests/samples/temp_tenant.json", mode="r") as temp_tenant:
+            tenantEmailInput = json.load(temp_tenant)
+            tenantEmailInput["email"] = email
+        monad = await repository.create_temp_tenant(session, "/Tenant", 1, tenantEmailInput, isTest=True)
+        
+        with open("./tests/samples/tenant.json", mode="r") as tenant:
+            tenantInput = json.load(tenant)
+            tenantInput["email"] = email
+        await repository.update_tenant_state(session, "/Tenant/Approved", "Approved", tenantInput)
+        monad = await repository.delete_tenant(session, "/Tenant", tenantInput)
+
+        assert not monad.has_errors()
