@@ -25,6 +25,7 @@ class Authorization:
             "/Lease",
             "/House",
             "/Landlord",
+            f"/Landlord/{landlordId}",
             f"/Landlord/{landlordId}/House"
         ]
         for house in houses:

@@ -195,7 +195,12 @@ async def schedule_lease(houseKey: str, signature: str, info: Info) -> Lease:
                 raise Exception(monad.error_status["reason"])
         lease = monad.get_param_at(0)
 
-        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, houseKey, lease, signature)
+        monad = await landlordRepository.get_landlord_by_id(session, scope, house.landlordId)
+        if monad.has_errors():
+                raise Exception(monad.error_status["reason"])
+        landlord = monad.get_param_at(0)
+    
+        monad = await schedulerRepository.schedule_lease(session, scope, house.firebaseId, houseKey, lease, landlord["landlordAddress"], signature)
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         return Lease(**lease)
