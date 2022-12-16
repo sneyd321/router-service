@@ -421,3 +421,15 @@ class DeviceId:
     tenantDeviceIds: List[str]
 
     
+@strawberry.type
+class TenantProfile:
+    firebaseId: str
+    imageURL: str
+    firstName: str
+    lastName: str
+
+    def __init__(self, **kwargs):
+        self.firebaseId = kwargs.get("firebaseId")
+        self.imageURL = kwargs.get("imageURL")
+        self.firstName = kwargs.get("firstName")
+        self.lastName = kwargs.get("lastName")

@@ -348,7 +348,10 @@ class TenantInput:
     firstName: str
     lastName: str
     email: str
-    password: str
+    phoneNumber: str
+    profileURL: str
+
+
     
 
     def to_json(self):
@@ -356,7 +359,8 @@ class TenantInput:
             'firstName': self.firstName, 
             'lastName': self.lastName, 
             'email': self.email, 
-            'password': self.password
+            "phoneNumber": self.phoneNumber,
+            "profileURL": self.profileURL
         }
 
 @strawberry.input
@@ -472,5 +476,20 @@ class LoginLandlordInput:
             "deviceId": self.deviceId
         }
 
+
+@strawberry.input
+class TenantProfileInput:
+    firebaseId: str
+    imageURL: str
+    firstName: str
+    lastName: str
+
+    def to_json(self):
+        return {
+            "firebaseId": self.firebaseId,
+            "imageURL": self.imageURL,
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+        }
 
 

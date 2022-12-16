@@ -88,6 +88,7 @@ class TenantRepository(Repository):
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
             session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
+         
             return await self.put(request, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
@@ -282,6 +283,43 @@ class SchedulerRepository(Repository):
                 "image": image
             })
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
+
+    async def schedule_tenant_profile_upload(self, session, scope, houseKey, imageURL, firebaseId, firstName, lastName, image):
+        request = Request(self.hostname, "/Profile/Tenant")
+        if request.resourcePath in scope:
+            auth_req = google.auth.transport.requests.Request()
+            id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+            session.headers["Authorization"] = f"Bearer {id_token}"
+            request.set_session(session)
+            return await self.post(request, **{
+                "firebaseId": firebaseId,
+                "imageURL": imageURL,
+                "houseKey": houseKey,
+                "firstName": firstName,
+                "lastName": lastName,
+                "image": image
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
+
+    async def schedule_landlord_profile_upload(self, session, scopes, houseKey, firebaseId, firstName, lastName, image):
+        request = Request(self.hostname, "/Profile/Tenant")
+        if request.resourcePath in scopes:
+            auth_req = google.auth.transport.requests.Request()
+            id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
+            session.headers["Authorization"] = f"Bearer {id_token}"
+            request.set_session(session)
+            return await self.post(request, **{
+                "firebaseId": firebaseId,
+                "imageURL": maintenanceTicket.imageURL,
+                "houseKey": houseKey,
+                "firstName": firstName,
+                "lastName": lastName,
+                "image": image
+            })
+        return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
+
 
         
     async def schedule_lease(self, session, scopes, firebaseId, houseKey, lease, landlordAddress, signature):

@@ -26,11 +26,13 @@ class Mutation:
 
     scheduleLease: LeaseSchedule = strawberry.field(resolver=schedule_lease)
     scheduleSignTenant: Tenant = strawberry.field(resolver=sign_tenant)
+    scheduleTenantProfile: TenantProfile = strawberry.field(resolver=upload_tenant_profile)
 
     addTenant: Tenant = strawberry.field(resolver=add_tenant)
     createTenant: Tenant = strawberry.field(resolver=create_tenant_account)
     createTempTenant: Tenant = strawberry.field(resolver=create_temp_tenant_account)
     deleteTenant: Tenant = strawberry.field(resolver=delete_tenant)
+    updateTenant: Tenant = strawberry.field(resolver=update_tenant)
 
     createLandlord: Landlord = strawberry.field(resolver=create_landlord_account)
     updateLandlord: Landlord = strawberry.field(resolver=update_landlord)

@@ -326,6 +326,24 @@ async def delete_tenant(tenant: TenantInput, info: Info) -> Tenant:
             raise Exception(monad.error_status["reason"])
         return Tenant(**monad.get_param_at(0))
 
+async def update_tenant(tenant: TenantInput, info: Info) -> Tenant:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await tenantRepository.update_tenant(session, scope, tenant.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return Tenant(**monad.get_param_at(0))
+
+
+async def upload_tenant_profile(houseKey: str, tenantProfile: TenantProfileInput, image: str, info: Info) -> TenantProfile:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await schedulerRepository.schedule_tenant_profile_upload(session=session, scope=scope, houseKey=houseKey, image=image, **tenantProfile.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return TenantProfile(**tenantProfile.to_json())
 
 
 async def create_landlord_account(landlord: CreateLandlordInput) -> Landlord:

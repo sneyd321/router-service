@@ -7,6 +7,8 @@ class Authorization:
 
     def get_tenant_scope(self, house):
         scope = [
+            "/Tenant",
+            "/Profile/Tenant",
             "/SignLease",
             "/MaintenanceTicket",
             f"/House/{house.id}/MaintenanceTicket",
