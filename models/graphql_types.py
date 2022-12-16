@@ -433,3 +433,14 @@ class TenantProfile:
         self.imageURL = kwargs.get("imageURL")
         self.firstName = kwargs.get("firstName")
         self.lastName = kwargs.get("lastName")
+
+@strawberry.type
+class LandlordProfile:
+    imageURL: str
+    firstName: str
+    lastName: str
+
+    def __init__(self, **kwargs):
+        self.imageURL = kwargs.get("imageURL")
+        self.firstName = kwargs.get("firstName")
+        self.lastName = kwargs.get("lastName")

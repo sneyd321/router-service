@@ -346,6 +346,15 @@ async def upload_tenant_profile(houseKey: str, tenantProfile: TenantProfileInput
             raise Exception(monad.error_status["reason"])
         return TenantProfile(**tenantProfile.to_json())
 
+async def upload_landlord_profile(houseKey: str, landlordProfile: LandlordProfileInput, image: str, info: Info) -> LandlordProfile:
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
+        tokenPayload = get_auth_token_payload(info)
+        scope = tokenPayload["scope"]
+        monad = await schedulerRepository.schedule_landlord_profile_upload(session=session, scope=scope, houseKey=houseKey, image=image, **landlordProfile.to_json())
+        if monad.has_errors():
+            raise Exception(monad.error_status["reason"])
+        return LandlordProfile(**landlordProfile.to_json())
+
 
 async def create_landlord_account(landlord: CreateLandlordInput) -> Landlord:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:

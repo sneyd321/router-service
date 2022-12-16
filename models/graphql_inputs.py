@@ -493,3 +493,17 @@ class TenantProfileInput:
         }
 
 
+@strawberry.input
+class LandlordProfileInput:
+    imageURL: str
+    firstName: str
+    lastName: str
+
+    def to_json(self):
+        return {
+            "imageURL": self.imageURL,
+            "firstName": self.firstName,
+            "lastName": self.lastName,
+        }
+
+

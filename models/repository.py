@@ -305,16 +305,16 @@ class SchedulerRepository(Repository):
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 
 
-    async def schedule_landlord_profile_upload(self, session, scopes, houseKey, firebaseId, firstName, lastName, image):
-        request = Request(self.hostname, "/Profile/Tenant")
-        if request.resourcePath in scopes:
+    async def schedule_landlord_profile_upload(self, session, scope, houseKey, imageURL, firstName, lastName, image):
+        request = Request(self.hostname, "/Profile/Landlord")
+        if request.resourcePath in scope:
             auth_req = google.auth.transport.requests.Request()
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
             session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
             return await self.post(request, **{
-                "firebaseId": firebaseId,
-                "imageURL": maintenanceTicket.imageURL,
+                "firebaseId": "",
+                "imageURL": imageURL,
                 "houseKey": houseKey,
                 "firstName": firstName,
                 "lastName": lastName,
