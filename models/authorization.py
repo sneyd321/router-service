@@ -20,7 +20,7 @@ class Authorization:
         scope = [
             "/Tenant",
             "/Tenant/TempAccountCreated",
-            "/Tenant/InvitePending",
+            "/Tenant/PendingInvite",
             "/Tenant/Approved",
             "/AddTenantEmail",
             "/Lease/Ontario",

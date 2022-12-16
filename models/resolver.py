@@ -30,6 +30,7 @@ timeout_interval = 60
 
 def get_auth_token_payload(info: Info):
     jwtToken = info.context["request"].headers.get("Authorization", None)
+    print(jwtToken)
     info.context["response"].headers["Access-Control-Expose-Headers"] = "Authorization"
     if jwtToken is None:
         raise Exception("Missing Authorization header")
@@ -221,7 +222,7 @@ async def add_tenant(houseKey: str, tenant: AddTenantEmailInput, info: Info) -> 
             raise Exception(monad.error_status["reason"])
         house = House(**houseRepsonse, lease=Lease(**monad.get_param_at(0)))
 
-        monad = await tenantRepository.update_tenant_state(session, scope, "InvitePending", tenant.to_json())
+        monad = await tenantRepository.update_tenant_state(session, scope, "PendingInvite", tenant.to_json())
         
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
