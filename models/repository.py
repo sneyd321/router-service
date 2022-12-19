@@ -78,8 +78,7 @@ class TenantRepository(Repository):
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
             session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
-            tenant["phoneNumber"] = ""
-            tenant["profileURL"] = ""
+   
             return await self.put(request, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
@@ -357,7 +356,7 @@ class SchedulerRepository(Repository):
             })
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
     
-    async def schedule_sign_lease(self, session, scopes, tenant, houseKey, firebaseId, documentURL, signature):
+    async def schedule_sign_lease(self, session, scopes, tenant, tenantPosition, houseKey, firebaseId, documentURL, signature):
         request = Request(self.hostname, "/SignLease")
         if request.resourcePath in scopes:
             auth_req = google.auth.transport.requests.Request()
@@ -370,8 +369,8 @@ class SchedulerRepository(Repository):
                 "email": tenant.email,
                 "houseKey": houseKey,
                 "documentURL": documentURL,
-                "tenantPosition": tenant.tenantPosition,
-                "tenantState": tenant.tenantState,
+                "tenantPosition": tenantPosition,
+                "tenantState": "Approved",
                 "signature": signature,
                 "firebaseId": firebaseId,
             })

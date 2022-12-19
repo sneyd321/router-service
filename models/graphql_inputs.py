@@ -364,13 +364,12 @@ class TenantInput:
         }
 
 @strawberry.input
-class TenantSignInput:
+class TenantSignUpInput:
     firstName: str
     lastName: str
     email: str
     password: str
-    tenantPosition: int
-    tenantState: str
+    phoneNumber: str
     
 
     def to_json(self):
@@ -379,8 +378,25 @@ class TenantSignInput:
             'lastName': self.lastName, 
             'email': self.email, 
             'password': self.password,
-            'tenantPosition': self.tenantPosition,
-            'tenantState': self.tenantState
+            "phoneNumber": self.phoneNumber,
+        }
+
+
+
+@strawberry.input
+class TenantSignInput:
+    firstName: str
+    lastName: str
+    email: str
+    password: str
+    
+
+    def to_json(self):
+        return {
+            'firstName': self.firstName, 
+            'lastName': self.lastName, 
+            'email': self.email, 
+            'password': self.password,
         }
 
 @strawberry.input
