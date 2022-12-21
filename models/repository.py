@@ -48,7 +48,7 @@ class TenantRepository(Repository):
             id_token = google.oauth2.id_token.fetch_id_token(auth_req, self.hostname)
             session.headers["Authorization"] = f"Bearer {id_token}"
             request.set_session(session)
-            
+          
             return await self.post(request, houseId=houseId, **tenant)
         return RequestMaybeMonad(None, error_status={"status": 403, "reason": f"Permission denied to access {request.resourcePath}"})
 

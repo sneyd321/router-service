@@ -332,6 +332,7 @@ class AddTenantEmailInput:
     lastName: str
     email: str
     password: str
+    phoneNumber: str
 
 
     def to_json(self):
@@ -339,7 +340,8 @@ class AddTenantEmailInput:
             "firstName": self.firstName,
             "lastName": self.lastName,
             "email": self.email,
-            "password": self.password
+            "password": self.password,
+            "phoneNumber": self.phoneNumber
         }
 
 

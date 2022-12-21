@@ -155,7 +155,7 @@ async def get_house_by_house_key(houseKey: str, info: Info) -> House:
 
         return House(**house.__dict__, lease=Lease(**monad.get_param_at(0)))
    
-async def delete_house(houseId: int) -> NewHouse:
+async def delete_house(houseId: int, info: Info) -> NewHouse:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(timeout_interval)) as session:
         tokenPayload = get_auth_token_payload(info)
         scope = tokenPayload["scope"]
@@ -223,7 +223,6 @@ async def add_tenant(houseKey: str, tenant: AddTenantEmailInput, info: Info) -> 
         house = House(**houseRepsonse, lease=Lease(**monad.get_param_at(0)))
 
         monad = await tenantRepository.update_tenant_state(session, scope, "PendingInvite", tenant.to_json())
-        
         if monad.has_errors():
             raise Exception(monad.error_status["reason"])
         updatedTenant = Tenant(**monad.get_param_at(0))
