@@ -54,7 +54,7 @@ class Authorization:
 
     def generate_tenant_token(self, scope):
         payload = {
-            "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=20),
+            "exp": datetime.now(tz=timezone.utc) + timedelta(minutes=30),
             "scope": scope
         }
         return jwt.encode(payload, os.environ.get("JWT_SECRET", "secret"), algorithm="HS256")
